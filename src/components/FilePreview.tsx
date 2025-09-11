@@ -97,13 +97,13 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose, fileCon
     if (!file) return null;
 
     // Image preview
-    if (file.type.startsWith('image/') && file.file_path && !imageError) {
+    if (file.type.startsWith('image/') && file.download_url && !imageError) {
       return (
-        <div className="flex items-center justify-center p-4">
+        <div className="flex items-center justify-center p-3">
           <img
-            src={file.file_path}
+            src={file.download_url}
             alt={file.name}
-            className="max-w-full max-h-[60vh] object-contain rounded border border-gray-200 dark:border-gray-700"
+            className="max-w-full max-h-[50vh] object-contain rounded border border-gray-200 dark:border-gray-700"
             onError={() => setImageError(true)}
           />
         </div>
@@ -111,15 +111,15 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose, fileCon
     }
 
     // Video preview
-    if (file.type.startsWith('video/') && file.file_path) {
+    if (file.type.startsWith('video/') && file.download_url) {
       return (
-        <div className="flex items-center justify-center p-4">
+        <div className="flex items-center justify-center p-3">
           <video
             controls
-            className="max-w-full max-h-[60vh] rounded border border-gray-200 dark:border-gray-700"
+            className="max-w-full max-h-[50vh] rounded border border-gray-200 dark:border-gray-700"
             preload="metadata"
           >
-            <source src={file.file_path} type={file.type} />
+            <source src={file.download_url} type={file.type} />
             Your browser does not support the video tag.
           </video>
         </div>
@@ -127,19 +127,19 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose, fileCon
     }
 
     // Audio preview
-    if (file.type.startsWith('audio/') && file.file_path) {
+    if (file.type.startsWith('audio/') && file.download_url) {
       return (
-        <div className="flex items-center justify-center p-8">
+        <div className="flex items-center justify-center p-6">
           <div className="w-full max-w-md">
-            <div className="flex items-center justify-center mb-4">
-              <Music className="w-16 h-16 text-gray-400 dark:text-gray-500" />
+            <div className="flex items-center justify-center mb-3">
+              <Music className="w-12 h-12 text-gray-400 dark:text-gray-500" />
             </div>
             <audio
               controls
               className="w-full"
               preload="metadata"
             >
-              <source src={file.file_path} type={file.type} />
+              <source src={file.download_url} type={file.type} />
               Your browser does not support the audio element.
             </audio>
           </div>
@@ -155,7 +155,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose, fileCon
           <div className="absolute top-2 right-2 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-black px-2 py-1 rounded border">
             {language}
           </div>
-          <pre className="whitespace-pre-wrap text-sm text-black dark:text-white font-mono bg-gray-50 dark:bg-gray-900 p-4 rounded border overflow-x-auto">
+          <pre className="whitespace-pre-wrap text-xs text-black dark:text-white font-mono bg-gray-50 dark:bg-gray-900 p-3 rounded border overflow-x-auto max-h-[50vh] overflow-y-auto">
             {fileContent}
           </pre>
         </div>
@@ -163,28 +163,28 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose, fileCon
     }
 
     // PDF preview
-    if (file.type === 'application/pdf' && file.file_path) {
+    if (file.type === 'application/pdf' && file.download_url) {
       if (pdfError) {
         return (
-          <div className="text-center py-12">
-            <File className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400 mb-4 text-lg">
+          <div className="text-center py-8">
+            <File className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+            <p className="text-gray-500 dark:text-gray-400 mb-3 text-base">
               PDF Preview Error
             </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mb-6">
+            <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">
               Unable to load PDF preview. Your browser may not support embedded PDFs.
             </p>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <button
                 onClick={() => setPdfError(false)}
-                className="inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-black dark:hover:border-white transition-colors mr-3"
+                className="inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-black dark:hover:border-white transition-colors mr-2 text-sm"
               >
                 <span>Try Again</span>
               </button>
               {onDownload && (
                 <button
                   onClick={handleDownload}
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                  className="inline-flex items-center space-x-2 px-3 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-sm"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download PDF</span>
@@ -203,7 +203,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose, fileCon
                 PDF Document
               </span>
               <button
-                onClick={() => window.open(file.file_path, '_blank')}
+                onClick={() => window.open(file.download_url, '_blank')}
                 className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                 title="Open in new tab"
               >
@@ -212,13 +212,13 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose, fileCon
             </div>
           </div>
           <iframe
-            src={file.file_path}
-            className="w-full h-[calc(95vh-120px)] min-h-[600px] border border-gray-200 dark:border-gray-700 rounded"
+            src={file.download_url}
+            className="w-full h-[calc(80vh-100px)] min-h-[400px] border border-gray-200 dark:border-gray-700 rounded"
             title={`PDF Preview: ${file.name}`}
             onError={() => setPdfError(true)}
             onLoad={() => setPdfError(false)}
           >
-            <p className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <p className="text-center py-6 text-gray-500 dark:text-gray-400">
               Your browser does not support PDFs. 
               <button
                 onClick={handleDownload}
@@ -259,18 +259,18 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose, fileCon
 
     // Fallback for unsupported file types
     return (
-      <div className="text-center py-12">
-        <File className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-        <p className="text-gray-500 dark:text-gray-400 mb-2 text-lg">
+      <div className="text-center py-8">
+        <File className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+        <p className="text-gray-500 dark:text-gray-400 mb-2 text-base">
           {file.type || 'Unknown file type'}
         </p>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mb-6">
+        <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">
           Preview not available for this file type
         </p>
         {onDownload && (
           <button
             onClick={handleDownload}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+            className="inline-flex items-center space-x-2 px-3 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-sm"
           >
             <Download className="w-4 h-4" />
             <span>Download File</span>
@@ -283,37 +283,37 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose, fileCon
   if (!file) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-black border border-gray-300 dark:border-gray-700 rounded-lg max-w-5xl max-h-[95vh] w-full overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3 min-w-0 flex-1">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 z-50">
+      <div className="bg-white dark:bg-black border border-gray-300 dark:border-gray-700 rounded-lg max-w-4xl max-h-[90vh] w-full overflow-hidden">
+        <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-2 min-w-0 flex-1">
             <div className="text-gray-500 dark:text-gray-400">
               {getFileIcon(file)}
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-medium text-black dark:text-white truncate">
+              <h3 className="font-medium text-black dark:text-white truncate text-sm">
                 {file.name}
               </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 {formatFileSize(file.size)} • {file.type || 'Unknown type'}
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
             {fileContent && (
               <button
                 onClick={handleCopy}
-                className="flex items-center space-x-1 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded hover:border-black dark:hover:border-white transition-colors"
+                className="flex items-center space-x-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded hover:border-black dark:hover:border-white transition-colors"
               >
                 {copied ? (
                   <>
-                    <Check className="w-4 h-4 text-green-600" />
-                    <span className="text-sm text-green-600">Copied!</span>
+                    <Check className="w-3 h-3 text-green-600" />
+                    <span className="text-xs text-green-600">Copied!</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-4 h-4 text-black dark:text-white" />
-                    <span className="text-sm text-black dark:text-white">Copy</span>
+                    <Copy className="w-3 h-3 text-black dark:text-white" />
+                    <span className="text-xs text-black dark:text-white">Copy</span>
                   </>
                 )}
               </button>
@@ -321,31 +321,31 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose, fileCon
             {onDownload && (
               <button
                 onClick={handleDownload}
-                className="flex items-center space-x-1 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded hover:border-black dark:hover:border-white transition-colors"
+                className="flex items-center space-x-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded hover:border-black dark:hover:border-white transition-colors"
               >
-                <Download className="w-4 h-4 text-black dark:text-white" />
-                <span className="text-sm text-black dark:text-white">Download</span>
+                <Download className="w-3 h-3 text-black dark:text-white" />
+                <span className="text-xs text-black dark:text-white">Download</span>
               </button>
             )}
             {onDelete && (
               <button
                 onClick={handleDelete}
-                className="flex items-center space-x-1 px-3 py-1 border border-red-300 dark:border-red-600 rounded hover:border-red-500 dark:hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                className="flex items-center space-x-1 px-2 py-1 border border-red-300 dark:border-red-600 rounded hover:border-red-500 dark:hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
               >
-                <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                <span className="text-sm text-red-600 dark:text-red-400">Delete</span>
+                <Trash2 className="w-3 h-3 text-red-600 dark:text-red-400" />
+                <span className="text-xs text-red-600 dark:text-red-400">Delete</span>
               </button>
             )}
             <button
               onClick={onClose}
               className="p-1 hover:bg-gray-100 dark:hover:bg-gray-900 rounded transition-colors"
             >
-              <X className="w-5 h-5 text-black dark:text-white" />
+              <X className="w-4 h-4 text-black dark:text-white" />
             </button>
           </div>
         </div>
         
-        <div className="overflow-auto max-h-[calc(95vh-80px)]">
+        <div className="overflow-auto max-h-[calc(90vh-70px)]">
           {renderPreviewContent()}
         </div>
       </div>

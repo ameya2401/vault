@@ -57,9 +57,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, uploading 
   }, [onFileUpload]);
 
   return (
-    <div className="w-full max-w-sm mx-auto mb-6">
+    <div className="w-full max-w-xs mx-auto mb-4">
       <div
-        className={`vault-upload-area relative p-4 transition-colors ${
+        className={`vault-upload-area relative p-3 transition-colors ${
           dragActive
             ? 'border-black dark:border-white'
             : ''
@@ -70,17 +70,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, uploading 
         onDrop={handleDrop}
       >
         <div className="text-center">
-          <div className="flex justify-center mb-3">
+          <div className="flex justify-center mb-2">
             {uploading ? (
-              <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full animate-spin"></div>
             ) : (
-              <Upload className="w-6 h-6 text-black dark:text-white" />
+              <Upload className="w-5 h-5 text-black dark:text-white" />
             )}
           </div>
-          <h3 className="text-sm font-medium text-black dark:text-white mb-1">
+          <h3 className="text-xs font-medium text-black dark:text-white mb-1">
             {uploading ? 'Uploading...' : 'Drop files here'}
           </h3>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
             or <span className="text-black dark:text-white font-medium">click to browse</span>
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-500">

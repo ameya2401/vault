@@ -29,15 +29,15 @@ const getFileIcon = (file: UploadedFile) => {
   const extension = file.name.split('.').pop()?.toLowerCase();
   
   if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')) {
-    return <Image className="w-6 h-6 text-blue-500" />;
+    return <Image className="w-4 h-4 text-blue-500" />;
   } else if (['mp4', 'mov', 'avi', 'mkv'].includes(extension || '')) {
-    return <Video className="w-6 h-6 text-purple-500" />;
+    return <Video className="w-4 h-4 text-purple-500" />;
   } else if (['mp3', 'wav', 'flac', 'aac'].includes(extension || '')) {
-    return <Music className="w-6 h-6 text-green-500" />;
+    return <Music className="w-4 h-4 text-green-500" />;
   } else if (['txt', 'md', 'pdf', 'doc', 'docx'].includes(extension || '')) {
-    return <FileText className="w-6 h-6 text-orange-500" />;
+    return <FileText className="w-4 h-4 text-orange-500" />;
   } else {
-    return <File className="w-6 h-6 text-gray-500" />;
+    return <File className="w-4 h-4 text-gray-500" />;
   }
 };
 
@@ -49,12 +49,12 @@ const getFileTypeLabel = (file: UploadedFile): string => {
 export const FileList: React.FC<FileListProps> = ({ files, onPreview, onDownload, onDelete }) => {
   if (files.length === 0) {
     return (
-      <div className="vault-card max-w-sm mx-auto text-center py-8 px-6">
-        <FileText className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-        <h3 className="text-lg font-medium text-black dark:text-white mb-1">
+      <div className="vault-card max-w-sm mx-auto text-center py-6 px-4">
+        <FileText className="w-8 h-8 text-gray-400 dark:text-gray-600 mx-auto mb-2" />
+        <h3 className="text-base font-medium text-black dark:text-white mb-1">
           No files yet
         </h3>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
+        <p className="text-gray-500 dark:text-gray-400 text-xs">
           Upload your first file
         </p>
       </div>
@@ -62,9 +62,9 @@ export const FileList: React.FC<FileListProps> = ({ files, onPreview, onDownload
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      <div className="mb-4">
-        <h3 className="text-lg font-medium text-black dark:text-white mb-1">
+    <div className="w-full max-w-2xl mx-auto">
+      <div className="mb-3">
+        <h3 className="text-base font-medium text-black dark:text-white mb-1">
           Files ({files.length})
         </h3>
       </div>
@@ -73,15 +73,15 @@ export const FileList: React.FC<FileListProps> = ({ files, onPreview, onDownload
         {files.map((file) => (
           <div key={file.id} className="vault-file-item">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3 flex-1 min-w-0">
+              <div className="flex items-center space-x-2 flex-1 min-w-0">
                 <div className="flex-shrink-0">
                   {getFileIcon(file)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-black dark:text-white truncate text-sm">
+                  <p className="font-medium text-black dark:text-white truncate text-xs">
                     {file.name}
                   </p>
-                  <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
                     <span>{getFileTypeLabel(file)}</span>
                     <span>•</span>
                     <span>{formatFileSize(file.size)}</span>
@@ -91,24 +91,24 @@ export const FileList: React.FC<FileListProps> = ({ files, onPreview, onDownload
                 </div>
               </div>
               
-              <div className="flex items-center space-x-1 ml-3">
+              <div className="flex items-center space-x-1 ml-2">
                 <button
                   onClick={() => onPreview(file)}
-                  className="p-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  className="p-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                   title="Preview"
                 >
                   <Eye className="w-3 h-3 text-black dark:text-white" />
                 </button>
                 <button
                   onClick={() => onDownload(file)}
-                  className="p-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  className="p-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                   title="Download"
                 >
                   <Download className="w-3 h-3 text-black dark:text-white" />
                 </button>
                 <button
                   onClick={() => onDelete(file)}
-                  className="p-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                  className="p-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                   title="Delete"
                 >
                   <Trash2 className="w-3 h-3 text-red-600 dark:text-red-400" />

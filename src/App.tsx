@@ -159,10 +159,21 @@ function App() {
       const loadFiles = async () => {
         try {
           setLoading(true);
+          
+          // Test connection first
+          console.log('Testing Supabase connection...');
+          const connectionOk = await storageService.testConnection();
+          if (!connectionOk) {
+            console.error('Supabase connection failed!');
+            alert('Connection to database failed. Please check your Supabase configuration.');
+            return;
+          }
+          
           const files = await storageService.getFiles();
           setFiles(files);
         } catch (error) {
           console.error('Error loading files:', error);
+          alert('Failed to load files. Please check your Supabase setup.');
         } finally {
           setLoading(false);
         }
@@ -220,30 +231,30 @@ function App() {
   // Main App
   return (
     <div className="min-h-screen bg-white dark:bg-black flex flex-col">
-      <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="flex justify-between items-center p-3 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center space-x-2">
-          <HardDrive className="w-5 h-5 text-black dark:text-white" />
-          <h1 className="text-lg font-bold text-black dark:text-white">
+          <HardDrive className="w-4 h-4 text-black dark:text-white" />
+          <h1 className="text-base font-bold text-black dark:text-white">
             Vault
           </h1>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2">
           <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
           <button
             onClick={handleLogout}
-            className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
             Logout
           </button>
         </div>
       </div>
       
-      <div className="container mx-auto px-4 py-6">
-        <div className="text-center mb-8">
-          <h2 className="text-xl font-bold text-black dark:text-white mb-2">
+      <div className="container mx-auto px-3 py-4">
+        <div className="text-center mb-6">
+          <h2 className="text-lg font-bold text-black dark:text-white mb-1">
             File Storage
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">
+          <p className="text-gray-600 dark:text-gray-400 text-xs">
             Upload and manage your files
           </p>
         </div>
@@ -251,9 +262,9 @@ function App() {
         <FileUpload onFileUpload={handleFileUpload} uploading={uploading} />
 
         {loading ? (
-          <div className="text-center py-8">
-            <div className="w-8 h-8 border-2 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full animate-spin mx-auto"></div>
-            <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm">Loading...</p>
+          <div className="text-center py-6">
+            <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full animate-spin mx-auto"></div>
+            <p className="text-gray-600 dark:text-gray-400 mt-2 text-xs">Loading...</p>
           </div>
         ) : (
           <FileList 
@@ -266,7 +277,7 @@ function App() {
       </div>
 
       {/* Footer */}
-      <footer className="mt-auto py-4 border-t border-gray-200 dark:border-gray-800">
+      <footer className="mt-auto py-3 border-t border-gray-200 dark:border-gray-800">
         <div className="text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400">
             Made by Ameya Bhagat ❤️
