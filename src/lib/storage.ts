@@ -4,41 +4,59 @@ import { UploadedFile } from '../types/file';
 
 class StorageService {
   async uploadFile(file: File): Promise<UploadedFile> {
-    // Supabase implementation
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${file.name}`;
-    const filePath = `files/${fileName}`;
+    try {
+      // Supabase implementation
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${file.name}`;
+      const filePath = `files/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('user-files')
-      .upload(filePath, file);
+      console.log('Uploading file to Supabase:', fileName);
 
-    if (uploadError) {
-      throw uploadError;
-    }
+      const { error: uploadError } = await supabase.storage
+        .from('user-files')
+        .upload(filePath, file);
 
-    const { error: dbError } = await supabase
-      .from('files')
-      .insert([{
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+
+      const fileRecord = {
         name: file.name,
         size: file.size,
         type: file.type,
         file_path: filePath,
-      }]);
+        uploaded_at: new Date().toISOString(),
+      };
 
-    if (dbError) {
-      throw dbError;
+      const { data: dbData, error: dbError } = await supabase
+        .from('files')
+        .insert([fileRecord])
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+        // Try to clean up uploaded file
+        await supabase.storage.from('user-files').remove([filePath]);
+        throw new Error(`Database error: ${dbError.message}`);
+      }
+
+      console.log('File uploaded successfully:', dbData);
+
+      // Return uploaded file info
+      return {
+        id: dbData.id.toString(),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        uploaded_at: new Date().toISOString(),
+        file_path: filePath,
+      };
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw error;
     }
-
-    // Return uploaded file info
-    return {
-      id: Date.now().toString(),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      uploaded_at: new Date().toISOString(),
-      file_path: filePath,
-    };
   }
 
   async getFiles(): Promise<UploadedFile[]> {
