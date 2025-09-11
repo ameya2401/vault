@@ -5,6 +5,7 @@ import { FileUpload } from './components/FileUpload';
 import { FileList } from './components/FileList';
 import { FilePreview } from './components/FilePreview';
 import { UploadedFile } from './types/file';
+import { storageService } from './lib/storage';
 import { Lock, HardDrive } from 'lucide-react';
 
 function App() {
@@ -18,7 +19,7 @@ function App() {
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const CORRECT_PASSWORD = import.meta.env.VITE_APP_PASSWORD || 'Ab@24401';
+  const CORRECT_PASSWORD = import.meta.env.VITE_APP_PASSWORD || 'Ab@supabase';
 
   useEffect(() => {
     // Check if already authenticated in this session
@@ -50,22 +51,11 @@ function App() {
   const handleFileUpload = async (file: File) => {
     setUploading(true);
     try {
-      // Simulate upload - create file object
-      const newFile: UploadedFile = {
-        id: Date.now().toString(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        uploaded_at: new Date().toISOString(),
-        file_path: URL.createObjectURL(file), // Store as blob URL for demo
-      };
+      // Upload to Supabase
+      const uploadedFile = await storageService.uploadFile(file);
       
       // Add to files list
-      setFiles(prev => [newFile, ...prev]);
-      
-      // Store in localStorage for persistence
-      const allFiles = [newFile, ...files];
-      localStorage.setItem('uploaded_files', JSON.stringify(allFiles));
+      setFiles(prev => [uploadedFile, ...prev]);
       
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -108,38 +98,34 @@ function App() {
     
     if (isTextFile) {
       try {
-        // For demo, try to fetch content from blob URL
-        if (file.file_path?.startsWith('blob:')) {
-          const response = await fetch(file.file_path);
-          const content = await response.text();
-          setFileContent(content);
-        }
+        // Load content from Supabase
+        const content = await storageService.getFileContent(file);
+        setFileContent(content);
       } catch (error) {
         console.error('Error loading file content:', error);
       }
     }
   };
 
-  const handleDownload = (file: UploadedFile) => {
+  const handleDownload = async (file: UploadedFile) => {
     try {
-      if (file.file_path?.startsWith('blob:')) {
-        // For demo files stored as blob URLs
-        const a = document.createElement('a');
-        a.href = file.file_path;
-        a.download = file.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      } else {
-        alert('Download functionality will be available when deployed with GitHub LFS');
-      }
+      // Download from Supabase
+      const blob = await storageService.downloadFile(file);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading file:', error);
       alert('Failed to download file. Please try again.');
     }
   };
 
-  const handleDelete = (file: UploadedFile) => {
+  const handleDelete = async (file: UploadedFile) => {
     // Show confirmation dialog
     const isConfirmed = window.confirm(`Are you sure you want to delete "${file.name}"?`);
     
@@ -148,17 +134,12 @@ function App() {
     }
 
     try {
+      // Delete from Supabase
+      await storageService.deleteFile(file);
+      
       // Remove from files array
       const updatedFiles = files.filter(f => f.id !== file.id);
       setFiles(updatedFiles);
-      
-      // Update localStorage
-      localStorage.setItem('uploaded_files', JSON.stringify(updatedFiles));
-      
-      // Revoke blob URL to free memory
-      if (file.file_path?.startsWith('blob:')) {
-        URL.revokeObjectURL(file.file_path);
-      }
       
       // Close preview if the deleted file is currently being previewed
       if (previewFile && previewFile.id === file.id) {
@@ -172,36 +153,42 @@ function App() {
     }
   };
 
-  // Load files from localStorage on authentication
+  // Load files from Supabase on authentication
   useEffect(() => {
     if (isAuthenticated) {
-      const savedFiles = localStorage.getItem('uploaded_files');
-      if (savedFiles) {
+      const loadFiles = async () => {
         try {
-          setFiles(JSON.parse(savedFiles));
+          setLoading(true);
+          const files = await storageService.getFiles();
+          setFiles(files);
         } catch (error) {
-          console.error('Error loading saved files:', error);
+          console.error('Error loading files:', error);
+        } finally {
+          setLoading(false);
         }
-      }
+      };
+      loadFiles();
     }
   }, [isAuthenticated]);
 
   // Login Screen
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-white dark:bg-black transition-colors flex items-center justify-center">
-        <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
+        <div className="absolute top-4 right-4">
+          <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+        </div>
         
-        <div className="w-full max-w-md mx-auto px-4">
-          <div className="text-center mb-8">
+        <div className="vault-card w-full max-w-sm mx-4 p-6">
+          <div className="text-center mb-6">
             <div className="flex items-center justify-center mb-4">
               <Lock className="w-8 h-8 text-black dark:text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-black dark:text-white mb-2">
-              Access Required
+            <h1 className="text-xl font-bold text-black dark:text-white mb-2">
+              Vault
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Enter password to access your file storage
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              Enter password to access
             </p>
           </div>
 
@@ -210,20 +197,19 @@ function App() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-black text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+              placeholder="Password"
+              className="vault-input text-sm"
               required
             />
             
             {passwordError && (
-              <p className="text-red-500 text-sm text-center">{passwordError}</p>
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-2">
+                <p className="text-red-600 dark:text-red-400 text-xs text-center">{passwordError}</p>
+              </div>
             )}
             
-            <button
-              type="submit"
-              className="w-full py-3 bg-black dark:bg-white text-white dark:text-black font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-            >
-              Access Files
+            <button type="submit" className="vault-button w-full text-sm">
+              Unlock
             </button>
           </form>
         </div>
@@ -233,30 +219,32 @@ function App() {
 
   // Main App
   return (
-    <div className="min-h-screen bg-white dark:bg-black transition-colors">
-      <div className="flex justify-between items-center p-4">
-        <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded hover:border-black dark:hover:border-white transition-colors text-black dark:text-white"
-        >
-          Logout
-        </button>
+    <div className="min-h-screen bg-white dark:bg-black flex flex-col">
+      <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center space-x-2">
+          <HardDrive className="w-5 h-5 text-black dark:text-white" />
+          <h1 className="text-lg font-bold text-black dark:text-white">
+            Vault
+          </h1>
+        </div>
+        <div className="flex items-center space-x-3">
+          <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+          <button
+            onClick={handleLogout}
+            className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            Logout
+          </button>
+        </div>
       </div>
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-4">
-            <HardDrive className="w-8 h-8 text-black dark:text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-black dark:text-white mb-2">
+      <div className="container mx-auto px-4 py-6">
+        <div className="text-center mb-8">
+          <h2 className="text-xl font-bold text-black dark:text-white mb-2">
             File Storage
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Upload, store, and access your files across devices
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-            Demo mode - Files stored locally (GitHub LFS integration ready for deployment)
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
+            Upload and manage your files
           </p>
         </div>
 
@@ -264,8 +252,8 @@ function App() {
 
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin w-8 h-8 border-2 border-black dark:border-white border-t-transparent rounded-full mx-auto"></div>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">Loading files...</p>
+            <div className="w-8 h-8 border-2 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full animate-spin mx-auto"></div>
+            <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm">Loading...</p>
           </div>
         ) : (
           <FileList 
@@ -276,6 +264,15 @@ function App() {
           />
         )}
       </div>
+
+      {/* Footer */}
+      <footer className="mt-auto py-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="text-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Made by Ameya Bhagat ❤️
+          </p>
+        </div>
+      </footer>
 
       <FilePreview 
         file={previewFile} 
