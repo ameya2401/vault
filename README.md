@@ -35,11 +35,6 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 VITE_APP_PASSWORD=your_app_password
 ```
 
-Just for Personal use
->>>>>>> e5a2780ae4a5e40d64f420f9984404b9d1ac7c7f
 ## License
 
 MIT License - feel free to use for personal or commercial projects.
-=======
-Just for Personal use
->>>>>>> e5a2780ae4a5e40d64f420f9984404b9d1ac7c7f
