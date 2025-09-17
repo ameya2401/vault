@@ -280,7 +280,7 @@ function App() {
       <footer className="mt-auto py-3 border-t border-gray-200 dark:border-gray-800">
         <div className="text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Made by Ameya Bhagat ❤️
+            Vault File Storage
           </p>
         </div>
       </footer>

@@ -1,7 +1,8 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "vault-file-storage",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "A modern file storage application with Supabase backend",
   "type": "module",
   "scripts": {
     "dev": "vite",

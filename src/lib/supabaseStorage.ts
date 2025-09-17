@@ -7,12 +7,6 @@ class SupabaseStorageService {
 
   async uploadFile(file: File): Promise<UploadedFile> {
     try {
-      console.log('Uploading file to Supabase:', file.name);
-      console.log('File size:', file.size, 'bytes');
-      console.log('File type:', file.type);
-      console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-      console.log('Bucket name:', this.bucketName);
-      
       // Create unique filename
       const timestamp = Date.now();
       const fileName = `${timestamp}-${file.name}`;
