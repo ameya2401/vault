@@ -6,13 +6,16 @@ import { FileList } from './components/FileList';
 import { FilePreview } from './components/FilePreview';
 import { UploadedFile } from './types/file';
 import { storageService } from './lib/storage';
-import { Lock, HardDrive } from 'lucide-react';
+import { Lock, HardDrive, Code2 } from 'lucide-react';
+import AppHeader from './components/AppHeader';
+import CodeEditor from './components/codeeditor/CodeEditor';
 
 function App() {
   const { isDark, toggleTheme } = useTheme();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [activeSection, setActiveSection] = useState<'files' | 'code'>('files');
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [previewFile, setPreviewFile] = useState<UploadedFile | null>(null);
@@ -46,6 +49,7 @@ function App() {
     sessionStorage.removeItem('fileupload_auth');
     setPassword('');
     setFiles([]);
+    setActiveSection('files');
   };
 
   const handleFileUpload = async (file: File) => {
@@ -231,56 +235,57 @@ function App() {
   // Main App
   return (
     <div className="min-h-screen bg-white dark:bg-black flex flex-col">
-      <div className="flex justify-between items-center p-3 border-b border-gray-200 dark:border-gray-800">
-        <div className="flex items-center space-x-2">
-          <HardDrive className="w-4 h-4 text-black dark:text-white" />
-          <h1 className="text-base font-bold text-black dark:text-white">
-            Vault
-          </h1>
-        </div>
-        <div className="flex items-center space-x-2">
-          <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
-          <button
-            onClick={handleLogout}
-            className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
+      <AppHeader 
+        activeSection={activeSection} 
+        onSectionChange={setActiveSection} 
+        onLogout={handleLogout} 
+        isDarkMode={isDark}
+        onToggleTheme={toggleTheme}
+      />
       
-      <div className="container mx-auto px-3 py-4">
-        <div className="text-center mb-6">
-          <h2 className="text-lg font-bold text-black dark:text-white mb-1">
-            File Storage
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-xs">
-            Upload and manage your files
-          </p>
-        </div>
+      <div className="container mx-auto px-4 py-6 flex-1" style={{ height: 'calc(100vh - 120px)' }}>
+        {activeSection === 'files' ? (
+          <>
+            <div className="text-center mb-8">
+              <h2 className="text-xl font-bold text-black dark:text-white mb-2">
+                File Storage
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Upload and manage your files
+              </p>
+            </div>
 
-        <FileUpload onFileUpload={handleFileUpload} uploading={uploading} />
+            <FileUpload onFileUpload={handleFileUpload} uploading={uploading} />
 
-        {loading ? (
-          <div className="text-center py-6">
-            <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full animate-spin mx-auto"></div>
-            <p className="text-gray-600 dark:text-gray-400 mt-2 text-xs">Loading...</p>
-          </div>
+            {loading ? (
+              <div className="text-center py-6">
+                <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full animate-spin mx-auto"></div>
+                <p className="text-gray-600 dark:text-gray-400 mt-2 text-xs">Loading...</p>
+              </div>
+            ) : (
+              <FileList 
+                files={files} 
+                onPreview={handlePreview} 
+                onDownload={handleDownload}
+                onDelete={handleDelete}
+              />
+            )}
+          </>
         ) : (
-          <FileList 
-            files={files} 
-            onPreview={handlePreview} 
-            onDownload={handleDownload}
-            onDelete={handleDelete}
-          />
+          <div className="h-full w-full">
+            <CodeEditor />
+          </div>
         )}
       </div>
 
       {/* Footer */}
-      <footer className="mt-auto py-3 border-t border-gray-200 dark:border-gray-800">
+      <footer className="py-4 border-t border-gray-200 dark:border-gray-800">
         <div className="text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Vault File Storage
+            Vault File Storage & Code Editor
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Made by Ameya Bhagat
           </p>
         </div>
       </footer>
