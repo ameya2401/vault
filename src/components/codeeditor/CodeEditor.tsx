@@ -13,7 +13,7 @@ export default function CodeEditor() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   // New state for multiple file tabs
   const [openFiles, setOpenFiles] = useState<OpenFile[]>([
-    { id: 'default', title: 'Code 1', code_content: '// Type your code here...', language: 'javascript' }
+    { id: 'default', title: 'Code 1', code_content: '// Type your code here...', language: 'sql' }
   ]);
   const [activeFileId, setActiveFileId] = useState('default');
 
@@ -125,7 +125,7 @@ export default function CodeEditor() {
   const handleCloseFile = (fileId: string) => {
     if (openFiles.length <= 1) {
       // Don't close the last file, just clear it
-      setOpenFiles([{ id: 'default', title: 'Code 1', code_content: '// Type your code here...', language: 'javascript' }]);
+      setOpenFiles([{ id: 'default', title: 'Code 1', code_content: '// Type your code here...', language: 'sql' }]);
       setActiveFileId('default');
       return;
     }
@@ -159,7 +159,7 @@ export default function CodeEditor() {
       id: newFileId,
       title: `Code ${codeFileCount + 1}`,
       code_content: '// Type your code here...',
-      language: 'javascript'
+      language: 'sql'
     };
     setOpenFiles([...openFiles, newFile]);
     setActiveFileId(newFileId);

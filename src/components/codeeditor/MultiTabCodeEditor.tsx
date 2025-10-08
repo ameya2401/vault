@@ -29,6 +29,9 @@ export default function MultiTabCodeEditor({
   // Ensure the active file has content
   const editorValue = activeFile?.code_content || '// Type your code here...';
 
+  // Determine the language based on file extension or default to SQL
+  const editorLanguage = activeFile?.language || 'sql';
+
   const handleEditorDidMount = (editor: any) => {
     editorRef.current = editor;
     console.log('Editor mounted:', editor);
@@ -94,7 +97,7 @@ export default function MultiTabCodeEditor({
         <div style={{ height: '100%', border: '1px solid #e5e7eb' }} className="dark:border-gray-800 rounded-lg overflow-hidden">
           <Editor
             height="100%"
-            defaultLanguage={activeFile.language || 'javascript'}
+            defaultLanguage={editorLanguage}
             value={editorValue}
             onChange={handleEditorChange}
             onMount={handleEditorDidMount}
@@ -121,7 +124,11 @@ export default function MultiTabCodeEditor({
                 handleMouseWheel: true,
                 useShadows: false,
                 alwaysConsumeMouseWheel: false
-              }
+              },
+              // Disable validation to remove error underlines
+              quickSuggestions: true,
+              suggestOnTriggerCharacters: true,
+              wordBasedSuggestions: "currentDocument"
             }}
           />
         </div>
