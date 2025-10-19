@@ -9,7 +9,6 @@ import { storageService } from './lib/storage';
 import { Lock, HardDrive, Code2 } from 'lucide-react';
 import AppHeader from './components/AppHeader';
 import CodeEditor from './components/codeeditor/CodeEditor';
-import DebugEnv from './DebugEnv';
 
 function App() {
   const { isDark, toggleTheme } = useTheme();
@@ -243,7 +242,6 @@ function App() {
             </button>
           </form>
         </div>
-        <DebugEnv />
       </div>
     );
   }
