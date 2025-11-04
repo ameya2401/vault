@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Language Detection Test</title>
+</head>
+<body>
+    <h1>Language Detection Test</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        import { detectLanguage } from './src/lib/languageDetection.ts';
+        
+        // Test cases
+        const testCases = [
+            {
+                name: 'JavaScript',
+                code: 'function hello() { console.log("Hello World"); }'
+            },
+            {
+                name: 'Python',
+                code: 'def hello():\n    print("Hello World")'
+            },
+            {
+                name: 'Java',
+                code: 'public class HelloWorld {\n    public static void main(String[] args) {\n        System.out.println("Hello World");\n    }\n}'
+            },
+            {
+                name: 'SQL',
+                code: 'SELECT * FROM users WHERE id = 1;'
+            },
+            {
+                name: 'HTML',
+                code: '<div class="container"><h1>Hello World</h1></div>'
+            }
+        ];
+
+        const resultsDiv = document.getElementById('results');
+        let resultsHTML = '<h2>Test Results:</h2><ul>';
+
+        testCases.forEach(testCase => {
+            const detected = detectLanguage(testCase.code);
+            resultsHTML += `<li><strong>${testCase.name}:</strong> ${detected}</li>`;
+        });
+
+        resultsHTML += '</ul>';
+        resultsDiv.innerHTML = resultsHTML;
+    </script>
+</body>
+</html>

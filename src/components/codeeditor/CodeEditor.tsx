@@ -5,15 +5,15 @@ import SavedFiles from './SavedFiles';
 import SaveDialog from './SaveDialog';
 import { TabType, CodeSnippet, OpenFile } from '../../types/code';
 import { codeService } from '../../lib/codeService';
+import { detectLanguage } from '../../lib/languageDetection';
 
 export default function CodeEditor() {
   const [activeTab, setActiveTab] = useState<TabType>('editor');
-  const [code, setCode] = useState('');
   const [snippets, setSnippets] = useState<CodeSnippet[]>([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   // New state for multiple file tabs
   const [openFiles, setOpenFiles] = useState<OpenFile[]>([
-    { id: 'default', title: 'Code 1', code_content: '// Type your code here...', language: 'sql' }
+    { id: 'default', title: 'Code 1', code_content: '', language: 'sql' }
   ]);
   const [activeFileId, setActiveFileId] = useState('default');
 
@@ -100,32 +100,26 @@ export default function CodeEditor() {
 
   // Handle code change for a specific file
   const handleCodeChange = (fileId: string, newCode: string) => {
+    // Detect language from the new code
+    const detectedLanguage = detectLanguage(newCode);
+    
     setOpenFiles(prevFiles => 
       prevFiles.map(file => 
-        file.id === fileId ? { ...file, code_content: newCode } : file
+        file.id === fileId ? { ...file, code_content: newCode, language: detectedLanguage } : file
       )
     );
-    // If this is the active file, also update the code state
-    if (fileId === activeFileId) {
-      setCode(newCode);
-    }
   };
 
   // Handle selecting a different file tab
   const handleFileSelect = (fileId: string) => {
     setActiveFileId(fileId);
-    // Find the selected file and update the code state
-    const selectedFile = openFiles.find(file => file.id === fileId);
-    if (selectedFile) {
-      setCode(selectedFile.code_content);
-    }
   };
 
   // Handle closing a file tab
   const handleCloseFile = (fileId: string) => {
     if (openFiles.length <= 1) {
       // Don't close the last file, just clear it
-      setOpenFiles([{ id: 'default', title: 'Code 1', code_content: '// Type your code here...', language: 'sql' }]);
+      setOpenFiles([{ id: 'default', title: 'Code 1', code_content: '', language: 'sql' }]);
       setActiveFileId('default');
       return;
     }
@@ -158,7 +152,7 @@ export default function CodeEditor() {
     const newFile: OpenFile = {
       id: newFileId,
       title: `Code ${codeFileCount + 1}`,
-      code_content: '// Type your code here...',
+      code_content: '',
       language: 'sql'
     };
     setOpenFiles([...openFiles, newFile]);

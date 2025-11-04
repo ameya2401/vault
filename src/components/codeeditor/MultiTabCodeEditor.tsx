@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { Copy, Save, X, Plus } from 'lucide-react';
 import { OpenFile } from '../../types/code';
+import { detectLanguage } from '../../lib/languageDetection';
 
 interface MultiTabCodeEditorProps {
   openFiles: OpenFile[];
@@ -23,14 +24,23 @@ export default function MultiTabCodeEditor({
   onAddNewFile
 }: MultiTabCodeEditorProps) {
   const editorRef = useRef<any>(null);
+  const [detectedLanguage, setDetectedLanguage] = useState<string>('');
 
   const activeFile = openFiles.find(file => file.id === activeFileId) || openFiles[0];
 
   // Ensure the active file has content
-  const editorValue = activeFile?.code_content || '// Type your code here...';
+  const editorValue = activeFile?.code_content || '';
 
   // Determine the language based on file extension or default to SQL
   const editorLanguage = activeFile?.language || 'sql';
+
+  // Detect language when code changes
+  useEffect(() => {
+    if (editorValue) {
+      const detected = detectLanguage(editorValue);
+      setDetectedLanguage(detected);
+    }
+  }, [editorValue]);
 
   const handleEditorDidMount = (editor: any) => {
     editorRef.current = editor;
@@ -39,7 +49,13 @@ export default function MultiTabCodeEditor({
 
   const handleEditorChange = (value: string | undefined) => {
     console.log('Editor value changed:', value);
-    onCodeChange(activeFile.id, value || '');
+    const newValue = value || '';
+    
+    // Detect language from the new code
+    const detected = detectLanguage(newValue);
+    setDetectedLanguage(detected);
+    
+    onCodeChange(activeFile.id, newValue);
   };
 
   const handleCopy = async () => {
@@ -97,7 +113,8 @@ export default function MultiTabCodeEditor({
         <div style={{ height: '100%', border: '1px solid #e5e7eb' }} className="dark:border-gray-800 rounded-lg overflow-hidden">
           <Editor
             height="100%"
-            defaultLanguage={editorLanguage}
+            defaultLanguage={detectedLanguage || editorLanguage}
+            language={detectedLanguage || editorLanguage}
             value={editorValue}
             onChange={handleEditorChange}
             onMount={handleEditorDidMount}
@@ -128,7 +145,18 @@ export default function MultiTabCodeEditor({
               // Disable validation to remove error underlines
               quickSuggestions: true,
               suggestOnTriggerCharacters: true,
-              wordBasedSuggestions: "currentDocument"
+              wordBasedSuggestions: "currentDocument",
+              hover: { enabled: false },
+              occurrencesHighlight: "off",
+              renderLineHighlight: "none",
+              selectionHighlight: false,
+              guides: {
+                bracketPairs: false,
+                bracketPairsHorizontal: false,
+                highlightActiveBracketPair: false,
+                highlightActiveIndentation: false,
+                indentation: false
+              }
             }}
           />
         </div>
