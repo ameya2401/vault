@@ -63,16 +63,13 @@ export default function SavedFiles({ snippets, onView, onDelete }: SavedFilesPro
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-medium text-black dark:text-white">{snippet.title}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-1 rounded">
-                      {snippet.language}
-                    </span>
+                  <div className="flex items-center gap-2 mt-2">
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       {new Date(snippet.created_at).toLocaleDateString()}
                     </span>
                   </div>
                   {snippet.category && snippet.category !== 'Uncategorized' && (
-                    <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mt-1 inline-block">
+                    <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mt-2 inline-block">
                       {snippet.category}
                     </span>
                   )}
@@ -93,11 +90,6 @@ export default function SavedFiles({ snippets, onView, onDelete }: SavedFilesPro
                     <Trash2 size={16} />
                   </button>
                 </div>
-              </div>
-              <div className="mt-3">
-                <pre className="text-sm bg-gray-100 dark:bg-gray-900 p-3 rounded overflow-hidden whitespace-pre-wrap break-words max-h-32 overflow-y-auto">
-                  {snippet.code_content.substring(0, 150)}{snippet.code_content.length > 150 ? '...' : ''}
-                </pre>
               </div>
             </div>
           ))}
