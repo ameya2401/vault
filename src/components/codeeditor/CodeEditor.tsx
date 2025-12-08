@@ -3,6 +3,7 @@ import Navigation from './Navigation';
 import MultiTabCodeEditor from './MultiTabCodeEditor';
 import SavedFiles from './SavedFiles';
 import SaveDialog from './SaveDialog';
+// import LanguageSelectionDialog from './LanguageSelectionDialog'; // Currently disabled
 import { TabType, CodeSnippet, OpenFile } from '../../types/code';
 import { codeService } from '../../lib/codeService';
 import { detectLanguage } from '../../lib/languageDetection';
@@ -11,6 +12,7 @@ export default function CodeEditor() {
   const [activeTab, setActiveTab] = useState<TabType>('editor');
   const [snippets, setSnippets] = useState<CodeSnippet[]>([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  // const [showLanguageDialog, setShowLanguageDialog] = useState(false); // Currently disabled
   // New state for multiple file tabs
   const [openFiles, setOpenFiles] = useState<OpenFile[]>([
     { id: 'default', title: 'Code 1', code_content: '', language: 'sql' }
@@ -53,7 +55,7 @@ export default function CodeEditor() {
 
       // Save to service
       const savedSnippet = await codeService.saveCodeSnippet(newSnippet);
-      
+
       // Update local state
       const updatedSnippets = [...snippets, savedSnippet];
       setSnippets(updatedSnippets);
@@ -88,7 +90,7 @@ export default function CodeEditor() {
     try {
       // Delete from service
       await codeService.deleteCodeSnippet(id);
-      
+
       // Update local state
       const updatedSnippets = snippets.filter(s => s.id !== id);
       setSnippets(updatedSnippets);
@@ -102,9 +104,9 @@ export default function CodeEditor() {
   const handleCodeChange = (fileId: string, newCode: string) => {
     // Detect language from the new code
     const detectedLanguage = detectLanguage(newCode);
-    
-    setOpenFiles(prevFiles => 
-      prevFiles.map(file => 
+
+    setOpenFiles(prevFiles =>
+      prevFiles.map(file =>
         file.id === fileId ? { ...file, code_content: newCode, language: detectedLanguage } : file
       )
     );
@@ -126,18 +128,18 @@ export default function CodeEditor() {
 
     const updatedFiles = openFiles.filter(file => file.id !== fileId);
     setOpenFiles(updatedFiles);
-    
+
     // If we closed the active file, switch to the first available file
     if (fileId === activeFileId) {
       setActiveFileId(updatedFiles[0].id);
     }
-    
+
     // Renumber the files to maintain Code 1, Code 2, etc.
     const renumberedFiles = updatedFiles.map((file, index) => ({
       ...file,
       title: file.title.startsWith('Code ') ? `Code ${index + 1}` : file.title
     }));
-    
+
     // Only update if titles actually changed
     if (renumberedFiles.some((file, i) => file.title !== updatedFiles[i].title)) {
       setOpenFiles(renumberedFiles);
@@ -158,6 +160,21 @@ export default function CodeEditor() {
     setOpenFiles([...openFiles, newFile]);
     setActiveFileId(newFileId);
   };
+
+  // Handle language selection from dialog (currently disabled)
+  // const handleLanguageSelect = (language: string) => {
+  //   const newFileId = `file-${Date.now()}`;
+  //   const codeFileCount = openFiles.filter(file => file.title.startsWith('Code ')).length;
+  //   const newFile: OpenFile = {
+  //     id: newFileId,
+  //     title: `Code ${codeFileCount + 1}`,
+  //     code_content: '',
+  //     language: language
+  //   };
+  //   setOpenFiles([...openFiles, newFile]);
+  //   setActiveFileId(newFileId);
+  //   setShowLanguageDialog(false);
+  // };
 
   return (
     <div className="h-full w-full bg-white dark:bg-black flex flex-col">
@@ -206,6 +223,14 @@ export default function CodeEditor() {
           onClose={() => setShowSaveDialog(false)}
         />
       )}
+
+      {/* Language selection dialog - currently disabled */}
+      {/* {showLanguageDialog && (
+        <LanguageSelectionDialog
+          onSelect={handleLanguageSelect}
+          onClose={() => setShowLanguageDialog(false)}
+        />
+      )} */}
     </div>
   );
 }

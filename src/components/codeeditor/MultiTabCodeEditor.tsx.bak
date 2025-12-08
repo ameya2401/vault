@@ -50,11 +50,11 @@ export default function MultiTabCodeEditor({
   const handleEditorChange = (value: string | undefined) => {
     console.log('Editor value changed:', value);
     const newValue = value || '';
-
+    
     // Detect language from the new code
     const detected = detectLanguage(newValue);
     setDetectedLanguage(detected);
-
+    
     onCodeChange(activeFile.id, newValue);
   };
 
@@ -76,10 +76,11 @@ export default function MultiTabCodeEditor({
         {openFiles.map((file) => (
           <div
             key={file.id}
-            className={`flex items-center px-4 py-3 cursor-pointer border-r border-gray-200 dark:border-gray-800 relative group min-w-[120px] ${activeFileId === file.id
-              ? 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white'
-              : 'bg-white dark:bg-black text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900'
-              }`}
+            className={`flex items-center px-4 py-3 cursor-pointer border-r border-gray-200 dark:border-gray-800 relative group min-w-[120px] ${
+              activeFileId === file.id
+                ? 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white'
+                : 'bg-white dark:bg-black text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900'
+            }`}
             onClick={() => onFileSelect(file.id)}
           >
             <span className="mr-2 text-sm truncate max-w-xs">{file.title}</span>
@@ -88,8 +89,9 @@ export default function MultiTabCodeEditor({
                 e.stopPropagation();
                 onFileClose(file.id);
               }}
-              className={`opacity-0 group-hover:opacity-100 rounded-full p-1 transition-opacity ${activeFileId === file.id ? 'hover:bg-gray-300 dark:hover:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-800'
-                }`}
+              className={`opacity-0 group-hover:opacity-100 rounded-full p-1 transition-opacity ${
+                activeFileId === file.id ? 'hover:bg-gray-300 dark:hover:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+              }`}
             >
               <X size={14} />
             </button>
@@ -140,17 +142,10 @@ export default function MultiTabCodeEditor({
                 useShadows: false,
                 alwaysConsumeMouseWheel: false
               },
-              // Enable suggestions but disable validation and error markers
+              // Disable validation to remove error underlines
               quickSuggestions: true,
               suggestOnTriggerCharacters: true,
               wordBasedSuggestions: "currentDocument",
-              acceptSuggestionOnEnter: "on",
-              tabCompletion: "on",
-              suggest: {
-                showKeywords: true,
-                showSnippets: true,
-                showWords: true
-              },
               hover: { enabled: false },
               occurrencesHighlight: "off",
               renderLineHighlight: "none",
@@ -161,15 +156,7 @@ export default function MultiTabCodeEditor({
                 highlightActiveBracketPair: false,
                 highlightActiveIndentation: false,
                 indentation: false
-              },
-              // Remove all error/warning indicators
-              glyphMargin: false,
-              lineDecorationsWidth: 0,
-              lineNumbersMinChars: 3,
-              // Disable all validation features
-              validate: false,
-              // Remove problem markers
-              renderValidationDecorations: "off"
+              }
             }}
           />
         </div>
