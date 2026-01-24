@@ -3,7 +3,7 @@ import { FileUpload } from '../components/FileUpload';
 import { FileList } from '../components/FileList';
 import { UploadedFile } from '../types/file';
 import { storageService } from '../lib/storage';
-import { ExternalLink, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 interface ExamModeViewProps {
     onPreview: (file: UploadedFile) => void;
@@ -79,11 +79,7 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
         }
     }
 
-    const getPublicLink = (filename: string) => {
-        const baseUrl = window.location.origin;
-        // Handle potential spaces in filename for display
-        return `${baseUrl}/${filename}`;
-    };
+
 
     return (
         <div className="space-y-8">
@@ -109,24 +105,10 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
             ) : (
                 <div className="w-full max-w-2xl mx-auto space-y-4">
                     {files.length > 0 && (
-                        <div className="bg-red-500/5 border border-red-500/10 rounded-lg p-4 mb-4">
-                            <h3 className="text-sm font-semibold text-red-500 mb-2">Public Links</h3>
-                            <div className="space-y-2">
-                                {files.map(file => (
-                                    <div key={file.id} className="flex items-center justify-between text-xs bg-black/5 dark:bg-white/5 p-2 rounded">
-                                        <span className="font-mono truncate flex-1">{getPublicLink(file.name)}</span>
-                                        <a
-                                            href={getPublicLink(file.name)}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="ml-2 p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors"
-                                            title="Open Link"
-                                        >
-                                            <ExternalLink className="w-3 h-3" />
-                                        </a>
-                                    </div>
-                                ))}
-                            </div>
+                        <div className="bg-red-500/5 border border-red-500/10 rounded-lg p-4 mb-4 text-center">
+                            <p className="text-sm font-medium text-red-500">
+                                <b>use / and then write the name of the file uploaded in url it will open</b>
+                            </p>
                         </div>
                     )}
 
