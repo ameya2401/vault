@@ -196,15 +196,24 @@ export default function CodeEditor() {
         )}
 
         {activeTab === 'indenter' && (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
+          <div className="h-full w-full">
+            <div className="mb-4 text-center">
               <h2 className="text-xl font-bold text-black dark:text-white mb-2">
                 Code Indenter
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                Coming soon - Format and indent your code automatically
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Edit and format your code automatically
               </p>
             </div>
+            <MultiTabCodeEditor
+              openFiles={openFiles}
+              activeFileId={activeFileId}
+              onCodeChange={handleCodeChange}
+              onFileClose={handleCloseFile}
+              onFileSelect={handleFileSelect}
+              onSave={() => setShowSaveDialog(true)}
+              onAddNewFile={handleAddNewFile}
+            />
           </div>
         )}
 

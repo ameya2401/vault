@@ -3,12 +3,12 @@ import { supabaseStorageService } from './supabaseStorage';
 import { UploadedFile } from '../types/file';
 
 class StorageService {
-  async uploadFile(file: File): Promise<UploadedFile> {
-    return await supabaseStorageService.uploadFile(file);
+  async uploadFile(file: File, folder: string = 'uploads'): Promise<UploadedFile> {
+    return await supabaseStorageService.uploadFile(file, folder);
   }
 
-  async getFiles(): Promise<UploadedFile[]> {
-    return await supabaseStorageService.getFiles();
+  async getFiles(folderFilter: string = 'uploads'): Promise<UploadedFile[]> {
+    return await supabaseStorageService.getFiles(folderFilter);
   }
 
   async downloadFile(file: UploadedFile): Promise<Blob> {

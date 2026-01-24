@@ -1,8 +1,8 @@
-import { HardDrive, Code2, Sun, Moon } from 'lucide-react';
+import { HardDrive, Code2, Sun, Moon, AlertTriangle } from 'lucide-react';
 
 interface AppHeaderProps {
-  activeSection: 'files' | 'code';
-  onSectionChange: (section: 'files' | 'code') => void;
+  activeSection: 'files' | 'code' | 'exam';
+  onSectionChange: (section: 'files' | 'code' | 'exam') => void;
   onLogout: () => void;
   isDarkMode: boolean;
   onToggleTheme: () => void;
@@ -18,25 +18,33 @@ export default function AppHeader({ activeSection, onSectionChange, onLogout, is
         <div className="flex space-x-1">
           <button
             onClick={() => onSectionChange('files')}
-            className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeSection === 'files'
+            className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeSection === 'files'
                 ? 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white'
                 : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
-            }`}
+              }`}
           >
             <HardDrive className="w-4 h-4" />
             <span>Files</span>
           </button>
           <button
             onClick={() => onSectionChange('code')}
-            className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeSection === 'code'
+            className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeSection === 'code'
                 ? 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white'
                 : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
-            }`}
+              }`}
           >
             <Code2 className="w-4 h-4" />
             <span>Code Editor</span>
+          </button>
+          <button
+            onClick={() => onSectionChange('exam')}
+            className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeSection === 'exam'
+                ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                : 'text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400'
+              }`}
+          >
+            <AlertTriangle className="w-4 h-4" />
+            <span>Exam Mode</span>
           </button>
         </div>
       </div>

@@ -69,6 +69,12 @@ export default function MultiTabCodeEditor({
     }
   };
 
+  const handleFormat = () => {
+    if (editorRef.current) {
+      editorRef.current.getAction('editor.action.formatDocument').run();
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-white dark:bg-black rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
       {/* File Tabs */}
@@ -184,7 +190,12 @@ export default function MultiTabCodeEditor({
           <Copy size={16} />
           Copy
         </button>
-
+        <button
+          onClick={handleFormat}
+          className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors rounded"
+        >
+          Format
+        </button>
         <button
           onClick={onSave}
           className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors rounded"

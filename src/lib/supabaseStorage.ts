@@ -5,13 +5,17 @@ class SupabaseStorageService {
   private bucketName = 'files';
   private tableName = 'files';
 
-  async uploadFile(file: File): Promise<UploadedFile> {
+  async uploadFile(file: File, folder: string = 'uploads'): Promise<UploadedFile> {
     try {
       // Create unique filename
       const timestamp = Date.now();
       const fileName = `${timestamp}-${file.name}`;
-      const filePath = `uploads/${fileName}`;
-      
+
+      // Use the provided folder or default to 'uploads'
+      // If folder is provided, ensure it doesn't have a trailing slash (though supabase handles it)
+      const cleanFolder = folder.replace(/\/$/, '');
+      const filePath = `${cleanFolder}/${fileName}`;
+
       // Upload file to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from(this.bucketName)
@@ -71,10 +75,10 @@ class SupabaseStorageService {
     }
   }
 
-  async getFiles(): Promise<UploadedFile[]> {
+  async getFiles(folderFilter: string = 'uploads'): Promise<UploadedFile[]> {
     try {
-      console.log('Loading files from Supabase...');
-      
+      console.log(`Loading files from Supabase (filter: ${folderFilter})...`);
+
       const { data, error } = await supabase
         .from(this.tableName)
         .select('*')
@@ -84,7 +88,13 @@ class SupabaseStorageService {
         throw new Error(`Failed to load files: ${error.message}`);
       }
 
-      const files: UploadedFile[] = data.map(file => {
+      // Filter files based on path prefix
+      const filteredData = data.filter(file => {
+        if (folderFilter === 'all') return true;
+        return file.file_path.startsWith(`${folderFilter}/`);
+      });
+
+      const files: UploadedFile[] = filteredData.map(file => {
         // Get public URL for each file
         const { data: urlData } = supabase.storage
           .from(this.bucketName)
@@ -113,7 +123,7 @@ class SupabaseStorageService {
   async downloadFile(file: UploadedFile): Promise<Blob> {
     try {
       console.log('Downloading file from Supabase:', file.name);
-      
+
       if (!file.file_path) {
         throw new Error('File path not found');
       }
@@ -138,29 +148,29 @@ class SupabaseStorageService {
   async getFileContent(file: UploadedFile): Promise<string | null> {
     try {
       console.log('Getting file content from Supabase:', file.name);
-      
+
       // Check if file is a text file
-      const isTextFile = file.type.startsWith('text/') || 
-        file.name.endsWith('.md') || 
-        file.name.endsWith('.json') || 
-        file.name.endsWith('.js') || 
-        file.name.endsWith('.ts') || 
-        file.name.endsWith('.tsx') || 
-        file.name.endsWith('.jsx') || 
-        file.name.endsWith('.css') || 
-        file.name.endsWith('.html') || 
-        file.name.endsWith('.xml') || 
-        file.name.endsWith('.py') || 
-        file.name.endsWith('.java') || 
-        file.name.endsWith('.cpp') || 
-        file.name.endsWith('.c') || 
-        file.name.endsWith('.h') || 
-        file.name.endsWith('.cs') || 
-        file.name.endsWith('.php') || 
-        file.name.endsWith('.rb') || 
-        file.name.endsWith('.go') || 
-        file.name.endsWith('.rs') || 
-        file.name.endsWith('.swift') || 
+      const isTextFile = file.type.startsWith('text/') ||
+        file.name.endsWith('.md') ||
+        file.name.endsWith('.json') ||
+        file.name.endsWith('.js') ||
+        file.name.endsWith('.ts') ||
+        file.name.endsWith('.tsx') ||
+        file.name.endsWith('.jsx') ||
+        file.name.endsWith('.css') ||
+        file.name.endsWith('.html') ||
+        file.name.endsWith('.xml') ||
+        file.name.endsWith('.py') ||
+        file.name.endsWith('.java') ||
+        file.name.endsWith('.cpp') ||
+        file.name.endsWith('.c') ||
+        file.name.endsWith('.h') ||
+        file.name.endsWith('.cs') ||
+        file.name.endsWith('.php') ||
+        file.name.endsWith('.rb') ||
+        file.name.endsWith('.go') ||
+        file.name.endsWith('.rs') ||
+        file.name.endsWith('.swift') ||
         file.name.endsWith('.kt');
 
       if (!isTextFile) {
@@ -180,7 +190,7 @@ class SupabaseStorageService {
   async deleteFile(file: UploadedFile): Promise<void> {
     try {
       console.log('Deleting file from Supabase:', file.name);
-      
+
       if (!file.file_path) {
         throw new Error('File path not found');
       }
@@ -217,10 +227,10 @@ class SupabaseStorageService {
   async testConnection(): Promise<boolean> {
     try {
       console.log('Testing Supabase storage connection...');
-      
+
       // Test database connection
       const { error } = await supabase.from(this.tableName).select('count').limit(1);
-      
+
       if (error) {
         console.error('Database connection failed:', error);
         return false;
@@ -228,7 +238,7 @@ class SupabaseStorageService {
 
       // Test storage bucket access
       const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-      
+
       if (bucketError) {
         console.error('Storage bucket access failed:', bucketError);
         return false;

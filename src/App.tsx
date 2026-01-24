@@ -9,13 +9,14 @@ import { storageService } from './lib/storage';
 import { Lock, HardDrive, Code2 } from 'lucide-react';
 import AppHeader from './components/AppHeader';
 import CodeEditor from './components/codeeditor/CodeEditor';
+import { ExamModeView } from './temporary-exam-feature/ExamModeView';
 
 function App() {
   const { isDark, toggleTheme } = useTheme();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [activeSection, setActiveSection] = useState<'files' | 'code'>('files');
+  const [activeSection, setActiveSection] = useState<'files' | 'code' | 'exam'>('files');
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [previewFile, setPreviewFile] = useState<UploadedFile | null>(null);
@@ -23,7 +24,7 @@ function App() {
   const [loading, setLoading] = useState(false);
 
   const CORRECT_PASSWORD = import.meta.env.VITE_APP_PASSWORD || 'Ab@supabase';
-  
+
   // Add a simple override for testing
   const TEST_PASSWORD = 'test123'; // Temporary override for testing
 
@@ -33,7 +34,7 @@ function App() {
     if (authStatus === 'authenticated') {
       setIsAuthenticated(true);
     }
-    
+
     // Debug logging
     console.log('Environment password:', import.meta.env.VITE_APP_PASSWORD);
     console.log('Correct password:', CORRECT_PASSWORD);
@@ -46,7 +47,7 @@ function App() {
     console.log('Expected:', CORRECT_PASSWORD);
     console.log('Match:', password === CORRECT_PASSWORD);
     console.log('Test password match:', password === TEST_PASSWORD);
-    
+
     // For testing, let's also accept the test password
     if (password === CORRECT_PASSWORD || password === TEST_PASSWORD) {
       setIsAuthenticated(true);
@@ -71,10 +72,10 @@ function App() {
     try {
       // Upload to Supabase
       const uploadedFile = await storageService.uploadFile(file);
-      
+
       // Add to files list
       setFiles(prev => [uploadedFile, ...prev]);
-      
+
     } catch (error) {
       console.error('Error uploading file:', error);
       alert('Failed to upload file. Please try again.');
@@ -88,32 +89,32 @@ function App() {
     setFileContent(null);
 
     // Check if it's a text file or code file
-    const isTextFile = file.type.startsWith('text/') || 
-        file.name.endsWith('.md') || 
-        file.name.endsWith('.js') || 
-        file.name.endsWith('.ts') || 
-        file.name.endsWith('.jsx') || 
-        file.name.endsWith('.tsx') || 
-        file.name.endsWith('.py') || 
-        file.name.endsWith('.java') || 
-        file.name.endsWith('.cpp') || 
-        file.name.endsWith('.c') || 
-        file.name.endsWith('.h') || 
-        file.name.endsWith('.html') || 
-        file.name.endsWith('.css') || 
-        file.name.endsWith('.json') || 
-        file.name.endsWith('.xml') || 
-        file.name.endsWith('.csv') || 
-        file.name.endsWith('.yaml') || 
-        file.name.endsWith('.yml') || 
-        file.name.endsWith('.sql') || 
-        file.name.endsWith('.php') || 
-        file.name.endsWith('.rb') || 
-        file.name.endsWith('.go') || 
-        file.name.endsWith('.rs') || 
-        file.name.endsWith('.swift') || 
-        file.name.endsWith('.kt');
-    
+    const isTextFile = file.type.startsWith('text/') ||
+      file.name.endsWith('.md') ||
+      file.name.endsWith('.js') ||
+      file.name.endsWith('.ts') ||
+      file.name.endsWith('.jsx') ||
+      file.name.endsWith('.tsx') ||
+      file.name.endsWith('.py') ||
+      file.name.endsWith('.java') ||
+      file.name.endsWith('.cpp') ||
+      file.name.endsWith('.c') ||
+      file.name.endsWith('.h') ||
+      file.name.endsWith('.html') ||
+      file.name.endsWith('.css') ||
+      file.name.endsWith('.json') ||
+      file.name.endsWith('.xml') ||
+      file.name.endsWith('.csv') ||
+      file.name.endsWith('.yaml') ||
+      file.name.endsWith('.yml') ||
+      file.name.endsWith('.sql') ||
+      file.name.endsWith('.php') ||
+      file.name.endsWith('.rb') ||
+      file.name.endsWith('.go') ||
+      file.name.endsWith('.rs') ||
+      file.name.endsWith('.swift') ||
+      file.name.endsWith('.kt');
+
     if (isTextFile) {
       try {
         // Load content from Supabase
@@ -146,7 +147,7 @@ function App() {
   const handleDelete = async (file: UploadedFile) => {
     // Show confirmation dialog
     const isConfirmed = window.confirm(`Are you sure you want to delete "${file.name}"?`);
-    
+
     if (!isConfirmed) {
       return;
     }
@@ -154,17 +155,17 @@ function App() {
     try {
       // Delete from Supabase
       await storageService.deleteFile(file);
-      
+
       // Remove from files array
       const updatedFiles = files.filter(f => f.id !== file.id);
       setFiles(updatedFiles);
-      
+
       // Close preview if the deleted file is currently being previewed
       if (previewFile && previewFile.id === file.id) {
         setPreviewFile(null);
         setFileContent(null);
       }
-      
+
     } catch (error) {
       console.error('Error deleting file:', error);
       alert('Failed to delete file. Please try again.');
@@ -177,7 +178,7 @@ function App() {
       const loadFiles = async () => {
         try {
           setLoading(true);
-          
+
           // Test connection first
           console.log('Testing Supabase connection...');
           const connectionOk = await storageService.testConnection();
@@ -186,9 +187,11 @@ function App() {
             alert('Connection to database failed. Please check your Supabase configuration.');
             return;
           }
-          
-          const files = await storageService.getFiles();
-          setFiles(files);
+
+          // Load main files (exclude exam folder)
+          const allFiles = await storageService.getFiles();
+          const mainFiles = allFiles.filter(f => !f.file_path.startsWith('exam-files/'));
+          setFiles(mainFiles);
         } catch (error) {
           console.error('Error loading files:', error);
           alert('Failed to load files. Please check your Supabase setup.');
@@ -207,7 +210,7 @@ function App() {
         <div className="absolute top-4 right-4">
           <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
         </div>
-        
+
         <div className="vault-card w-full max-w-sm mx-4 p-6">
           <div className="text-center mb-6">
             <div className="flex items-center justify-center mb-4">
@@ -230,13 +233,13 @@ function App() {
               className="vault-input text-sm"
               required
             />
-            
+
             {passwordError && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-2">
                 <p className="text-red-600 dark:text-red-400 text-xs text-center">{passwordError}</p>
               </div>
             )}
-            
+
             <button type="submit" className="vault-button w-full text-sm">
               Unlock
             </button>
@@ -249,14 +252,14 @@ function App() {
   // Main App
   return (
     <div className="min-h-screen bg-white dark:bg-black flex flex-col">
-      <AppHeader 
-        activeSection={activeSection} 
-        onSectionChange={setActiveSection} 
-        onLogout={handleLogout} 
+      <AppHeader
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+        onLogout={handleLogout}
         isDarkMode={isDark}
         onToggleTheme={toggleTheme}
       />
-      
+
       <div className="container mx-auto px-4 py-6 flex-1" style={{ height: 'calc(100vh - 120px)' }}>
         {activeSection === 'files' ? (
           <>
@@ -277,17 +280,25 @@ function App() {
                 <p className="text-gray-600 dark:text-gray-400 mt-2 text-xs">Loading...</p>
               </div>
             ) : (
-              <FileList 
-                files={files} 
-                onPreview={handlePreview} 
+              <FileList
+                files={files}
+                onPreview={handlePreview}
                 onDownload={handleDownload}
                 onDelete={handleDelete}
               />
             )}
           </>
-        ) : (
+        ) : activeSection === 'code' ? (
           <div className="h-full w-full">
             <CodeEditor />
+          </div>
+        ) : (
+          <div className="h-full w-full">
+            <ExamModeView
+              onPreview={handlePreview}
+              onDownload={handleDownload}
+              onDelete={handleDelete}
+            />
           </div>
         )}
       </div>
@@ -304,9 +315,9 @@ function App() {
         </div>
       </footer>
 
-      <FilePreview 
-        file={previewFile} 
-        onClose={() => setPreviewFile(null)} 
+      <FilePreview
+        file={previewFile}
+        onClose={() => setPreviewFile(null)}
         fileContent={fileContent}
         onDownload={handleDownload}
         onDelete={handleDelete}
