@@ -121,4 +121,4 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
         </div>
     );
 };
-```
+
