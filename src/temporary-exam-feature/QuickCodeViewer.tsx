@@ -130,18 +130,13 @@ export const QuickCodeViewer: React.FC = () => {
         }
     };
 
-    const handleWheel = (e: React.WheelEvent) => {
-        if (e.ctrlKey) {
-            // Determine direction
-            const delta = e.deltaY;
-            if (delta < 0) {
-                // Scroll Up -> Zoom In
-                setFontSize(prev => Math.min(32, prev + 1));
-            } else {
-                // Scroll Down -> Zoom Out
-                setFontSize(prev => Math.max(10, prev - 1));
+    const handleEditorDidMount = (editor: any, monaco: any) => {
+        editor.onDidChangeConfiguration((e: any) => {
+            if (e.hasChanged(monaco.editor.EditorOption.fontSize)) {
+                const newSize = editor.getOption(monaco.editor.EditorOption.fontSize);
+                setFontSize(newSize);
             }
-        }
+        });
     };
 
     if (loading) {
@@ -223,16 +218,14 @@ export const QuickCodeViewer: React.FC = () => {
             </div>
 
             {/* Monaco Editor Container */}
-            <div
-                className="flex-1 overflow-hidden"
-                onWheel={handleWheel}
-            >
+            <div className="flex-1 overflow-hidden">
                 <Editor
                     height="100%"
                     width="100%"
                     language={language}
                     value={content}
                     theme="vs-dark"
+                    onMount={handleEditorDidMount}
                     options={{
                         readOnly: true,
                         minimap: { enabled: false },
@@ -246,7 +239,7 @@ export const QuickCodeViewer: React.FC = () => {
                         contextmenu: false,
                         matchBrackets: 'always',
                         automaticLayout: true,
-                        mouseWheelZoom: false, // We handle this manually to sync state
+                        mouseWheelZoom: true,
                     }}
                 />
             </div>
