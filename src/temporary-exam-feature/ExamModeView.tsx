@@ -19,7 +19,6 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
     const [files, setFiles] = useState<UploadedFile[]>([]);
     const [uploading, setUploading] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [folderName, setFolderName] = useState('');
 
     const EXAM_FOLDER = 'exam-files';
 
@@ -43,15 +42,8 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
     const handleFileUpload = async (file: File) => {
         setUploading(true);
         try {
-            // Construct upload path based on user input folder
-            // Sanitize folder name: remove leading/trailing slashes and spaces
-            const cleanSubFolder = folderName.trim().replace(/^\/+|\/+$/g, '');
-            const targetFolder = cleanSubFolder
-                ? `${EXAM_FOLDER}/${cleanSubFolder}`
-                : EXAM_FOLDER;
-
             // Upload to exam folder
-            const uploadedFile = await storageService.uploadFile(file, targetFolder);
+            const uploadedFile = await storageService.uploadFile(file, EXAM_FOLDER);
 
             // Add to files list
             setFiles(prev => [uploadedFile, ...prev]);
@@ -87,40 +79,6 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
         }
     }
 
-    // Helper to group files by folder
-    const getGroupedFiles = () => {
-        const groups: { [key: string]: UploadedFile[] } = {};
-
-        files.forEach(file => {
-            // Parse folder from path
-            // Format: exam-files/subfolder/filename or exam-files/filename
-            const relativePath = file.file_path.replace(`${EXAM_FOLDER}/`, '');
-            const parts = relativePath.split('/');
-
-            // If parts > 1, it has a subfolder. The last part is the filename.
-            // If parts === 1, it's in the root of exam-files
-            let groupName = 'General';
-            if (parts.length > 1) {
-                // Join all parts except the last one to get the folder path
-                groupName = parts.slice(0, -1).join('/');
-            }
-
-            if (!groups[groupName]) {
-                groups[groupName] = [];
-            }
-            groups[groupName].push(file);
-        });
-
-        // Sort keys to maximize consistency (General first, then alphabetical)
-        return Object.keys(groups).sort().reduce((acc: any, key) => {
-            acc[key] = groups[key];
-            return acc;
-        }, {});
-    };
-
-    const groupedFiles = getGroupedFiles();
-
-
     return (
         <div className="space-y-8">
             <div className="text-center">
@@ -135,22 +93,6 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
                 </p>
             </div>
 
-            <div className="max-w-xs mx-auto">
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Folder Name (Optional)
-                </label>
-                <input
-                    type="text"
-                    value={folderName}
-                    onChange={(e) => setFolderName(e.target.value)}
-                    placeholder="e.g. dsa, web, java"
-                    className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                />
-                <p className="text-[10px] text-gray-500 mt-1">
-                    Use folders to organize your files. URL lookup remains flat (by filename).
-                </p>
-            </div>
-
             <FileUpload onFileUpload={handleFileUpload} uploading={uploading} />
 
             {loading ? (
@@ -159,7 +101,7 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
                     <p className="text-gray-600 dark:text-gray-400 mt-2 text-xs">Loading exam files...</p>
                 </div>
             ) : (
-                <div className="w-full max-w-2xl mx-auto space-y-8">
+                <div className="w-full max-w-2xl mx-auto space-y-4">
                     {files.length > 0 && (
                         <div className="bg-red-500/5 border border-red-500/10 rounded-lg p-4 mb-4 text-center">
                             <p className="text-sm font-medium text-red-500">
@@ -168,35 +110,15 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
                         </div>
                     )}
 
-                    {Object.keys(groupedFiles).length === 0 && files.length > 0 && (
-                        <FileList
-                            files={files}
-                            onPreview={onPreview}
-                            onDownload={onDownload}
-                            onDelete={handleFileDelete}
-                        />
-                    )}
-
-                    {Object.entries(groupedFiles).map(([group, groupFiles]) => (
-                        <div key={group} className="space-y-3">
-                            <div className="flex items-center space-x-2 border-b border-gray-200 dark:border-gray-800 pb-2">
-                                <span className={`text-xs font-bold px-2 py-1 rounded ${group === 'General' ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400' : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'}`}>
-                                    {group}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                    {(groupFiles as UploadedFile[]).length} files
-                                </span>
-                            </div>
-                            <FileList
-                                files={(groupFiles as UploadedFile[])}
-                                onPreview={onPreview}
-                                onDownload={onDownload}
-                                onDelete={handleFileDelete}
-                            />
-                        </div>
-                    ))}
+                    <FileList
+                        files={files}
+                        onPreview={onPreview}
+                        onDownload={onDownload}
+                        onDelete={handleFileDelete}
+                    />
                 </div>
             )}
         </div>
     );
 };
+```
