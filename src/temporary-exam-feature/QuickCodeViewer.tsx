@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Copy, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { Copy, Check, AlertCircle, Loader2, ZoomIn, ZoomOut } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 
 export const QuickCodeViewer: React.FC = () => {
@@ -10,6 +10,7 @@ export const QuickCodeViewer: React.FC = () => {
     const [copied, setCopied] = useState(false);
     const [filename, setFilename] = useState('');
     const [language, setLanguage] = useState('plaintext');
+    const [fontSize, setFontSize] = useState(14);
 
     useEffect(() => {
         const fetchFile = async () => {
@@ -161,27 +162,48 @@ export const QuickCodeViewer: React.FC = () => {
                     <span className="text-sm text-gray-400">File:</span>
                     <span className="font-semibold text-gray-200">{filename}</span>
                 </div>
-                <button
-                    onClick={handleCopy}
-                    className={`
-                        flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-all duration-200
-                        ${copied
-                            ? 'bg-green-600/20 text-green-400'
-                            : 'bg-[#007acc] hover:bg-[#0063a5] text-white'}
-                    `}
-                >
-                    {copied ? (
-                        <>
-                            <Check className="w-3.5 h-3.5" />
-                            <span>Copied</span>
-                        </>
-                    ) : (
-                        <>
-                            <Copy className="w-3.5 h-3.5" />
-                            <span>Copy</span>
-                        </>
-                    )}
-                </button>
+
+                <div className="flex items-center space-x-3">
+                    <div className="flex items-center bg-[#3c3c3c] rounded-md overflow-hidden">
+                        <button
+                            onClick={() => setFontSize(prev => Math.max(10, prev - 1))}
+                            className="p-1.5 hover:bg-[#4a4a4a] text-gray-300 transition-colors"
+                            title="Decrease font size"
+                        >
+                            <ZoomOut className="w-4 h-4" />
+                        </button>
+                        <span className="px-2 text-xs text-gray-400 min-w-[2ch]">{fontSize}</span>
+                        <button
+                            onClick={() => setFontSize(prev => Math.min(32, prev + 1))}
+                            className="p-1.5 hover:bg-[#4a4a4a] text-gray-300 transition-colors"
+                            title="Increase font size"
+                        >
+                            <ZoomIn className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <button
+                        onClick={handleCopy}
+                        className={`
+                            flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-all duration-200
+                            ${copied
+                                ? 'bg-green-600/20 text-green-400'
+                                : 'bg-[#007acc] hover:bg-[#0063a5] text-white'}
+                        `}
+                    >
+                        {copied ? (
+                            <>
+                                <Check className="w-3.5 h-3.5" />
+                                <span>Copied</span>
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="w-3.5 h-3.5" />
+                                <span>Copy</span>
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* Monaco Editor Container */}
@@ -196,7 +218,7 @@ export const QuickCodeViewer: React.FC = () => {
                         readOnly: true,
                         minimap: { enabled: false },
                         scrollBeyondLastLine: false,
-                        fontSize: 14,
+                        fontSize: fontSize,
                         fontFamily: "'Cascadia Code', 'Fira Code', 'Menlo', 'Monaco', 'Courier New', monospace",
                         fontLigatures: true,
                         padding: { top: 16, bottom: 16 },
