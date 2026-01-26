@@ -303,17 +303,7 @@ function App() {
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="py-4 border-t border-gray-200 dark:border-gray-800">
-        <div className="text-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Vault File Storage & Code Editor
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Made by Ameya Bhagat
-          </p>
-        </div>
-      </footer>
+
 
       <FilePreview
         file={previewFile}

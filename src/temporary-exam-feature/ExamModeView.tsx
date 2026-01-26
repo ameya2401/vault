@@ -3,7 +3,7 @@ import { FileUpload } from '../components/FileUpload';
 import { FileList } from '../components/FileList';
 import { UploadedFile } from '../types/file';
 import { storageService } from '../lib/storage';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Search } from 'lucide-react';
 
 interface ExamModeViewProps {
     onPreview: (file: UploadedFile) => void;
@@ -17,6 +17,8 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
     onDelete
 }) => {
     const [files, setFiles] = useState<UploadedFile[]>([]);
+    const [filteredFiles, setFilteredFiles] = useState<UploadedFile[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [uploading, setUploading] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -25,6 +27,13 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
     useEffect(() => {
         loadFiles();
     }, []);
+
+    useEffect(() => {
+        const filtered = files.filter(file =>
+            file.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredFiles(filtered);
+    }, [files, searchQuery]);
 
     const loadFiles = async () => {
         try {
@@ -103,15 +112,28 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
             ) : (
                 <div className="w-full max-w-2xl mx-auto space-y-4">
                     {files.length > 0 && (
-                        <div className="bg-red-500/5 border border-red-500/10 rounded-lg p-4 mb-4 text-center">
-                            <p className="text-sm font-medium text-red-500">
-                                <b>use / and then write the name of the file uploaded in url it will open</b>
-                            </p>
-                        </div>
+                        <>
+                            <div className="relative mb-6">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                <input
+                                    type="text"
+                                    placeholder="Search exam files..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50 transition-all placeholder:text-gray-400"
+                                />
+                            </div>
+
+                            <div className="bg-red-500/5 border border-red-500/10 rounded-lg p-4 mb-4 text-center">
+                                <p className="text-sm font-medium text-red-500">
+                                    <b>use / and then write the name of the file uploaded in url it will open</b>
+                                </p>
+                            </div>
+                        </>
                     )}
 
                     <FileList
-                        files={files}
+                        files={filteredFiles}
                         onPreview={onPreview}
                         onDownload={onDownload}
                         onDelete={handleFileDelete}
