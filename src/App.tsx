@@ -13,7 +13,7 @@ import { ExamModeView } from './temporary-exam-feature/ExamModeView';
 
 function App() {
   const { isDark, toggleTheme } = useTheme();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // Authentication disabled by default
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [activeSection, setActiveSection] = useState<'files' | 'code' | 'exam'>('files');
