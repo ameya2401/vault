@@ -41,15 +41,35 @@ export const QuickCodeViewer: React.FC = () => {
                 let targetFile = files?.find((f: any) => f.file_path.startsWith('exam-files/'));
 
                 if (!targetFile) {
-                    // Try adding .txt extension if not found
-                    if (!decodedPath.endsWith('.txt')) {
-                        const { data: txtFiles, error: txtDbError } = await supabase
-                            .from('files')
-                            .select('*')
-                            .ilike('name', `${decodedPath}.txt`);
+                    // 2. If exact match not found, try finding a file with this name + any extension
+                    // We only do this if the user didn't provide an extension (no dot in the name)
+                    // or if they did but we want to be flexible.
 
-                        if (!txtDbError && txtFiles) {
-                            targetFile = txtFiles.find((f: any) => f.file_path.startsWith('exam-files/'));
+                    // Search for files that start with "decodedPath."
+                    // e.g. decodedPath = "binarysearch", search for "binarysearch.%"
+                    const { data: extFiles, error: extDbError } = await supabase
+                        .from('files')
+                        .select('*')
+                        .ilike('name', `${decodedPath}.%`); // % matches any characters
+
+                    if (!extDbError && extFiles && extFiles.length > 0) {
+                        // Filter for exam-files/
+                        const examFiles = extFiles.filter((f: any) => f.file_path.startsWith('exam-files/'));
+
+                        if (examFiles.length > 0) {
+                            // If we find multiple (e.g. main.c, main.h), we pick the first one.
+                            // Ideally we might show a list, but for now convenience is key.
+                            targetFile = examFiles[0];
+                            // Update filename/language to match the actual found file
+                            const actualName = targetFile.name; // Assuming 'name' column holds the filename
+                            // If name column is full path, we might need to parse. 
+                            // Based on earlier context 'name' seems to be just filename. 
+                            // But let's verify with the file path which includes 'exam-files/'
+                            // Actually earlier code used 'files' table 'name' col.
+
+                            // Let's update the UI state to show the real filename
+                            setFilename(targetFile.name);
+                            setLanguage(getLanguageFromFilename(targetFile.name));
                         }
                     }
                 }
