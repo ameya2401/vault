@@ -1,28 +1,29 @@
 import { useState } from 'react';
 import { CodeSnippet } from '../../types/code';
-import { Trash2, Eye } from 'lucide-react';
+import { Trash2, Eye, Download } from 'lucide-react';
 
 interface SavedFilesProps {
   snippets: CodeSnippet[];
   onView: (snippet: CodeSnippet) => void;
+  onDownload: (snippet: CodeSnippet) => void;
   onDelete: (id: string) => void;
 }
 
-export default function SavedFiles({ snippets, onView, onDelete }: SavedFilesProps) {
+export default function SavedFiles({ snippets, onView, onDownload, onDelete }: SavedFilesProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  
+
   // Get unique categories from snippets
   const categories = ['All', ...new Set(snippets.map(snippet => snippet.category || 'Uncategorized'))];
-  
+
   // Filter snippets by selected category
-  const filteredSnippets = selectedCategory === 'All' 
-    ? snippets 
+  const filteredSnippets = selectedCategory === 'All'
+    ? snippets
     : snippets.filter(snippet => (snippet.category || 'Uncategorized') === selectedCategory);
 
   return (
     <div className="bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-800 p-6">
       <h2 className="text-xl font-bold text-black dark:text-white mb-4">Saved Code Snippets</h2>
-      
+
       {/* Category Filter */}
       {categories.length > 1 && (
         <div className="flex flex-wrap gap-2 mb-6">
@@ -30,23 +31,22 @@ export default function SavedFiles({ snippets, onView, onDelete }: SavedFilesPro
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                selectedCategory === category
+              className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedCategory === category
                   ? 'bg-black dark:bg-white text-white dark:text-black'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
+                }`}
             >
               {category}
             </button>
           ))}
         </div>
       )}
-      
+
       {filteredSnippets.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-600 dark:text-gray-400">
-            {selectedCategory === 'All' 
-              ? 'No saved code snippets yet.' 
+            {selectedCategory === 'All'
+              ? 'No saved code snippets yet.'
               : `No saved code snippets in the "${selectedCategory}" category.`}
           </p>
           <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
@@ -56,8 +56,8 @@ export default function SavedFiles({ snippets, onView, onDelete }: SavedFilesPro
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredSnippets.map((snippet) => (
-            <div 
-              key={snippet.id} 
+            <div
+              key={snippet.id}
               className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
             >
               <div className="flex justify-between items-start">
@@ -75,14 +75,21 @@ export default function SavedFiles({ snippets, onView, onDelete }: SavedFilesPro
                   )}
                 </div>
                 <div className="flex gap-1">
-                  <button 
+                  <button
                     onClick={() => onView(snippet)}
                     className="p-1 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white"
                     title="View"
                   >
                     <Eye size={16} />
                   </button>
-                  <button 
+                  <button
+                    onClick={() => onDownload(snippet)}
+                    className="p-1 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white"
+                    title="Download"
+                  >
+                    <Download size={16} />
+                  </button>
+                  <button
                     onClick={() => onDelete(snippet.id)}
                     className="p-1 text-gray-600 dark:text-gray-400 hover:text-red-500"
                     title="Delete"

@@ -100,6 +100,48 @@ export default function CodeEditor() {
     }
   };
 
+  const handleDownload = (snippet: CodeSnippet) => {
+    try {
+      const extensionMap: { [key: string]: string } = {
+        'javascript': 'js',
+        'typescript': 'ts',
+        'python': 'py',
+        'java': 'java',
+        'cpp': 'cpp',
+        'c': 'c',
+        'html': 'html',
+        'css': 'css',
+        'sql': 'sql',
+        'json': 'json',
+        'markdown': 'md',
+        'xml': 'xml',
+        'yaml': 'yaml',
+        'php': 'php',
+        'ruby': 'rb',
+        'go': 'go',
+        'rust': 'rs',
+        'swift': 'swift',
+        'kotlin': 'kt'
+      };
+
+      const extension = extensionMap[snippet.language] || 'txt';
+      const filename = `${snippet.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${extension}`;
+
+      const blob = new Blob([snippet.code_content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading snippet:', error);
+      alert('Failed to download snippet');
+    }
+  };
+
   // Handle code change for a specific file
   const handleCodeChange = (fileId: string, newCode: string) => {
     // Detect language from the new code
@@ -221,6 +263,7 @@ export default function CodeEditor() {
           <SavedFiles
             snippets={snippets}
             onView={handleView}
+            onDownload={handleDownload}
             onDelete={handleDelete}
           />
         )}
