@@ -3,7 +3,7 @@ import { FileUpload } from '../components/FileUpload';
 import { FileList } from '../components/FileList';
 import { UploadedFile } from '../types/file';
 import { storageService } from '../lib/storage';
-import { AlertTriangle, Search } from 'lucide-react';
+import { AlertTriangle, Search, Trash2 } from 'lucide-react';
 
 interface ExamModeViewProps {
     onPreview: (file: UploadedFile) => void;
@@ -88,6 +88,52 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
         }
     }
 
+    const handleDeleteAll = async () => {
+        if (files.length === 0) return;
+
+        // 1. Initial Warning
+        const isConfirmed = window.confirm(
+            "WARNING: You are about to DELETE ALL files in Exam Mode.\n\nThis action cannot be undone.\n\nAre you sure you want to proceed?"
+        );
+
+        if (!isConfirmed) return;
+
+        // 2. Password Prompt
+        const password = window.prompt("Please enter the admin password to confirm deletion:");
+
+        if (!password) return;
+
+        // Check against environment password or fallbacks
+        const CORRECT_PASSWORD = import.meta.env.VITE_APP_PASSWORD || 'Ab@supabase';
+        const TEST_PASSWORD = 'test123';
+
+        if (password !== CORRECT_PASSWORD && password !== TEST_PASSWORD) {
+            alert("Incorrect password. Deletion cancelled.");
+            return;
+        }
+
+        // 3. Perform Deletion
+        try {
+            setLoading(true);
+
+            // Delete all files concurrently
+            const deletePromises = files.map(file => storageService.deleteFile(file));
+            await Promise.all(deletePromises);
+
+            setFiles([]);
+            setFilteredFiles([]);
+
+            alert("All files have been successfully deleted.");
+        } catch (error) {
+            console.error('Error deleting all files:', error);
+            alert('Failed to delete some files. Please check console for details.');
+            // Reload to show current state
+            loadFiles();
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="space-y-8">
             <div className="text-center">
@@ -113,15 +159,24 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
                 <div className="w-full max-w-2xl mx-auto space-y-4">
                     {files.length > 0 && (
                         <>
-                            <div className="relative mb-6">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                <input
-                                    type="text"
-                                    placeholder="Search exam files..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50 transition-all placeholder:text-gray-400"
-                                />
+                            <div className="flex gap-4 mb-6">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search exam files..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50 transition-all placeholder:text-gray-400"
+                                    />
+                                </div>
+                                <button
+                                    onClick={handleDeleteAll}
+                                    className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm flex items-center gap-2 transition-colors whitespace-nowrap"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete All
+                                </button>
                             </div>
 
                             <div className="bg-red-500/5 border border-red-500/10 rounded-lg p-4 mb-4 text-center">
