@@ -24,10 +24,10 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
 
     const EXAM_ROOT = 'exam-files';
     const tabs = [
-        { id: 'group-a', label: 'Group A', folder: EXAM_ROOT },
-        { id: 'group-b', label: 'Group B', folder: `${EXAM_ROOT}/group-b` },
-        { id: 'group-c', label: 'Group C', folder: `${EXAM_ROOT}/group-c` },
-        { id: 'group-d', label: 'Group D', folder: `${EXAM_ROOT}/group-d` }
+        { id: 'a', label: 'Group A', folder: `${EXAM_ROOT}/a` },
+        { id: 'b', label: 'Group B', folder: `${EXAM_ROOT}/b` },
+        { id: 'c', label: 'Group C', folder: `${EXAM_ROOT}/c` },
+        { id: 'd', label: 'Group D', folder: `${EXAM_ROOT}/d` }
     ];
     const [activeTabId, setActiveTabId] = useState(tabs[0].id);
     const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0];
@@ -204,7 +204,7 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
 
                             <div className="bg-red-500/5 border border-red-500/10 rounded-lg p-4 mb-4 text-center">
                                 <p className="text-sm font-medium text-red-500">
-                                    <b>use / and then write the name of the file uploaded in url it will open</b>
+                                    <b>To access files for {activeTab.label}, use the URL: <span className="bg-red-500/20 px-2 py-0.5 rounded font-mono">/{activeTab.id}/filename</span></b>
                                 </p>
                             </div>
                         </>
