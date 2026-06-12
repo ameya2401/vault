@@ -52,10 +52,19 @@ export const QuickCodeViewer: React.FC = () => {
     };
 
     const getGroupInfo = (filePath: string) => {
+        if (filePath.startsWith('exam-files/a/')) return { id: 'a', name: 'Group A' };
+        if (filePath.startsWith('exam-files/b/')) return { id: 'b', name: 'Group B' };
+        if (filePath.startsWith('exam-files/c/')) return { id: 'c', name: 'Group C' };
+        if (filePath.startsWith('exam-files/d/')) return { id: 'd', name: 'Group D' };
+        
+        // Legacy paths
         if (filePath.startsWith('exam-files/group-b/')) return { id: 'b', name: 'Group B' };
         if (filePath.startsWith('exam-files/group-c/')) return { id: 'c', name: 'Group C' };
         if (filePath.startsWith('exam-files/group-d/')) return { id: 'd', name: 'Group D' };
+        
+        // Fallback for files directly in exam-files/
         if (filePath.startsWith('exam-files/')) return { id: 'a', name: 'Group A' };
+        
         return { id: 'unknown', name: 'Unknown Group' };
     };
 

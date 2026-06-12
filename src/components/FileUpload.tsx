@@ -27,14 +27,11 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, uploading 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       
-      // File size limit: 10MB (adjust as needed)
-      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-      
+      const maxSize = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSize) {
         alert('File size must be less than 10MB. Please choose a smaller file.');
         return;
       }
-      
       onFileUpload(file);
     }
   }, [onFileUpload]);
@@ -43,51 +40,51 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, uploading 
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       
-      // Clear the input value immediately so the exact same file can be selected again later
-      e.target.value = '';
+      e.target.value = ''; // clear input
       
-      // File size limit: 10MB (adjust as needed)
-      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-      
+      const maxSize = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSize) {
         alert('File size must be less than 10MB. Please choose a smaller file.');
         return;
       }
-      
       onFileUpload(file);
     }
   }, [onFileUpload]);
 
   return (
-    <div className="w-full max-w-xs mx-auto mb-4">
+    <div className="w-full max-w-2xl mx-auto mb-4">
       <div
-        className={`vault-upload-area relative p-3 transition-colors ${
+        className={`relative overflow-hidden transition-all duration-300 rounded-2xl border ${
           dragActive
-            ? 'border-black dark:border-white'
-            : ''
-        } ${uploading ? 'opacity-70' : ''}`}
+            ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-500/10 shadow-[0_0_0_4px_rgba(59,130,246,0.1)]'
+            : 'border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#1a1a1a] hover:bg-gray-100/50 dark:hover:bg-[#252525]'
+        } ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        <div className="text-center">
-          <div className="flex justify-center mb-2">
+        <div className="py-10 px-6 text-center flex flex-col items-center">
+          <div className={`flex items-center justify-center w-12 h-12 rounded-full mb-4 transition-colors ${dragActive ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400' : 'bg-white dark:bg-[#2d2d2d] text-gray-400 dark:text-gray-500 shadow-sm border border-gray-100 dark:border-white/5'}`}>
             {uploading ? (
-              <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
             ) : (
-              <Upload className="w-5 h-5 text-black dark:text-white" />
+              <Upload className="w-5 h-5" />
             )}
           </div>
-          <h3 className="text-xs font-medium text-black dark:text-white mb-1">
-            {uploading ? 'Uploading...' : 'Drop files here'}
+          
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+            {uploading ? 'Uploading securely...' : 'Click or drag file to this area to upload'}
           </h3>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-            or <span className="text-black dark:text-white font-medium">click to browse</span>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 max-w-sm">
+            Support for single file upload. Maximum file size is strictly limited to 10MB.
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500">
-            Max 10MB
-          </p>
+          
+          <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-white dark:bg-[#2d2d2d] border border-gray-200 dark:border-white/5 shadow-sm rounded-md text-[10px] uppercase font-bold tracking-wider text-gray-500">
+            <Shield className="w-3 h-3" />
+            <span>Secure Transfer</span>
+          </div>
+
           <input
             type="file"
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"

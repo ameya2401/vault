@@ -10,7 +10,7 @@ import { ExamModeView } from './temporary-exam-feature/ExamModeView';
 
 function App() {
   const { isDark, toggleTheme } = useTheme();
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Password protection enabled
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // Password protection temporarily disabled
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [previewFile, setPreviewFile] = useState<UploadedFile | null>(null);

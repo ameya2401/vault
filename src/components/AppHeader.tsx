@@ -26,12 +26,12 @@ export default function AppHeader({ onLogout, isDarkMode, onToggleTheme }: AppHe
         >
           {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
-        <button
+        {/* <button
           onClick={onLogout}
           className="px-3 py-2 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
         >
           Logout
-        </button>
+        </button> */}
       </div>
     </div>
   );
