@@ -3,7 +3,7 @@ import { FileUpload } from '../components/FileUpload';
 import { FileList } from '../components/FileList';
 import { UploadedFile } from '../types/file';
 import { storageService } from '../lib/storage';
-import { AlertTriangle, Search, Trash2 } from 'lucide-react';
+import { AlertTriangle, Search, Trash2, Link } from 'lucide-react';
 
 interface ExamModeViewProps {
     onPreview: (file: UploadedFile) => void;
@@ -59,12 +59,8 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
     const handleFileUpload = async (file: File) => {
         setUploading(true);
         try {
-            // Upload to exam folder
             const uploadedFile = await storageService.uploadFile(file, activeTab.folder);
-
-            // Add to files list
             setFiles(prev => [uploadedFile, ...prev]);
-
         } catch (error) {
             console.error('Error uploading file:', error);
             alert('Failed to upload file. Please try again.');
@@ -74,22 +70,14 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
     };
 
     const handleFileDelete = async (file: UploadedFile) => {
-        // Show confirmation dialog
         const isConfirmed = window.confirm(`Are you sure you want to delete "${file.name}" from Exam Mode?`);
-
-        if (!isConfirmed) {
-            return;
-        }
+        if (!isConfirmed) return;
 
         try {
             await storageService.deleteFile(file);
-            // Remove from files array
             const updatedFiles = files.filter(f => f.id !== file.id);
             setFiles(updatedFiles);
-
-            // Pass up just in case parent needs to know (though handling locally here)
             onDelete(file);
-
         } catch (error) {
             console.error('Error deleting file:', error);
             alert('Failed to delete file');
@@ -99,19 +87,14 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
     const handleDeleteAll = async () => {
         if (files.length === 0) return;
 
-        // 1. Initial Warning
         const isConfirmed = window.confirm(
             "WARNING: You are about to DELETE ALL files in Exam Mode.\n\nThis action cannot be undone.\n\nAre you sure you want to proceed?"
         );
-
         if (!isConfirmed) return;
 
-        // 2. Password Prompt
         const password = window.prompt("Please enter the admin password to confirm deletion:");
-
         if (!password) return;
 
-        // Check against environment password or fallbacks
         const CORRECT_PASSWORD = import.meta.env.VITE_APP_PASSWORD || 'Ab@supabase';
         const TEST_PASSWORD = 'test123';
 
@@ -120,22 +103,15 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
             return;
         }
 
-        // 3. Perform Deletion
         try {
             setLoading(true);
-
-            // Delete all files concurrently
             const deletePromises = files.map(file => storageService.deleteFile(file));
             await Promise.all(deletePromises);
-
             setFiles([]);
             setFilteredFiles([]);
-
-            alert("All files have been successfully deleted.");
         } catch (error) {
             console.error('Error deleting all files:', error);
             alert('Failed to delete some files. Please check console for details.');
-            // Reload to show current state
             loadFiles(activeTab.folder);
         } finally {
             setLoading(false);
@@ -143,71 +119,89 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
     };
 
     return (
-        <div className="space-y-8">
-            <div className="text-center">
-                <h2 className="text-xl font-bold text-red-500 mb-2 flex items-center justify-center gap-2">
-                    <AlertTriangle className="w-5 h-5" />
-                    Exam Mode Storage
+        <div className="space-y-10 max-w-3xl mx-auto pb-12">
+            
+            {/* Header Area */}
+            <div className="flex flex-col items-center pt-4 pb-2">
+                <div className="inline-flex items-center justify-center space-x-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide mb-4">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>Exam Mode Sandbox</span>
+                </div>
+                <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-3">
+                    Workspace Management
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400 text-sm max-w-md mx-auto">
-                    Files uploaded here are accessible via direct URL for practical exams.
-                    <br />
-                    <span className="text-xs opacity-75">folder: {activeTab.folder}</span>
+                <p className="text-gray-500 dark:text-gray-400 text-sm text-center max-w-md leading-relaxed">
+                    Upload and manage secure files. Students access these files using a direct routing link for practical exams.
                 </p>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-2">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTabId(tab.id)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${activeTabId === tab.id
-                                ? 'bg-red-500 text-white border-red-500'
-                                : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800'
-                            }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
+            {/* Elegant Tab Switcher */}
+            <div className="flex justify-center">
+                <div className="inline-flex p-1 bg-gray-100/80 dark:bg-[#1a1a1a] rounded-xl shadow-inner border border-gray-200 dark:border-white/5">
+                    {tabs.map((tab) => {
+                        const isActive = activeTabId === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTabId(tab.id)}
+                                className={`
+                                    relative flex items-center px-6 py-2 rounded-lg text-sm font-medium transition-all duration-300 outline-none
+                                    ${isActive 
+                                        ? 'text-gray-900 dark:text-white shadow-sm bg-white dark:bg-[#2d2d2d] border border-gray-200 dark:border-white/10' 
+                                        : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-white/5 border border-transparent'
+                                    }
+                                `}
+                            >
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
 
-            <FileUpload onFileUpload={handleFileUpload} uploading={uploading} />
+            {/* Intelligent Helper Alert */}
+            <div className="flex items-center justify-center space-x-3 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
+                <div className="p-2 bg-white dark:bg-[#2d2d2d] rounded-lg border border-gray-200 dark:border-white/5 shadow-sm">
+                    <Link className="w-4 h-4 text-blue-500" />
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Direct access link: <span className="inline-flex items-center font-mono font-medium text-gray-900 dark:text-gray-200 bg-gray-200 dark:bg-[#2d2d2d] px-2 py-0.5 rounded ml-1">/{activeTab.id}/filename</span>
+                </div>
+            </div>
 
+            {/* Upload Area */}
+            <div className="pt-2">
+                <FileUpload onFileUpload={handleFileUpload} uploading={uploading} />
+            </div>
+
+            {/* File List Section */}
             {loading ? (
-                <div className="text-center py-6">
-                    <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 border-t-red-500 rounded-full animate-spin mx-auto"></div>
-                    <p className="text-gray-600 dark:text-gray-400 mt-2 text-xs">Loading exam files...</p>
+                <div className="flex flex-col items-center justify-center py-12 opacity-50">
+                    <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 border-t-gray-900 dark:border-t-white rounded-full animate-spin mb-3"></div>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-widest">Syncing</p>
                 </div>
             ) : (
-                <div className="w-full max-w-2xl mx-auto space-y-4">
+                <div className="w-full mx-auto space-y-6">
                     {files.length > 0 && (
-                        <>
-                            <div className="flex gap-4 mb-6">
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search exam files..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50 transition-all placeholder:text-gray-400"
-                                    />
-                                </div>
-                                <button
-                                    onClick={handleDeleteAll}
-                                    className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm flex items-center gap-2 transition-colors whitespace-nowrap"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    Delete All
-                                </button>
+                        <div className="flex items-center gap-3">
+                            <div className="relative flex-1 group">
+                                <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 transition-colors group-focus-within:text-blue-500" />
+                                <input
+                                    type="text"
+                                    placeholder="Filter files..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-all placeholder:text-gray-400"
+                                />
                             </div>
-
-                            <div className="bg-red-500/5 border border-red-500/10 rounded-lg p-4 mb-4 text-center">
-                                <p className="text-sm font-medium text-red-500">
-                                    <b>To access files for {activeTab.label}, use the URL: <span className="bg-red-500/20 px-2 py-0.5 rounded font-mono">/{activeTab.id}/filename</span></b>
-                                </p>
-                            </div>
-                        </>
+                            <button
+                                onClick={handleDeleteAll}
+                                className="px-4 py-2.5 bg-transparent border border-red-200 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-sm font-medium flex items-center gap-2 transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-red-500/30"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                Clear List
+                            </button>
+                        </div>
                     )}
 
                     <FileList
