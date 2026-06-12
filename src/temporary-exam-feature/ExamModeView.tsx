@@ -119,99 +119,112 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
     };
 
     return (
-        <div className="space-y-10 max-w-3xl mx-auto pb-12">
+        <div className="max-w-[1400px] mx-auto w-full flex flex-col lg:flex-row gap-8 lg:gap-12 pb-8 h-[calc(100vh-8rem)] min-h-[700px] items-start px-4 sm:px-6 lg:px-8">
             
-            {/* Header Area */}
-            <div className="flex flex-col items-center pt-4 pb-2">
-                <div className="inline-flex items-center justify-center space-x-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide mb-4">
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>Exam Mode Sandbox</span>
+            {/* Left Column: Fixed Config & Upload Panel */}
+            <div className="w-full lg:w-[420px] flex-shrink-0 flex flex-col space-y-8">
+                
+                {/* Header Area */}
+                <div className="flex flex-col items-start pt-4">
+                    <div className="inline-flex items-center space-x-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide mb-4">
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        <span>Exam Mode Sandbox</span>
+                    </div>
+                    <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-3">
+                        Workspace
+                    </h2>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                        Upload and manage secure files. Students access these files using a direct routing link for practical exams.
+                    </p>
                 </div>
-                <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-3">
-                    Workspace Management
-                </h2>
-                <p className="text-gray-500 dark:text-gray-400 text-sm text-center max-w-md leading-relaxed">
-                    Upload and manage secure files. Students access these files using a direct routing link for practical exams.
-                </p>
+
+                {/* Elegant Tab Switcher */}
+                <div>
+                    <div className="inline-flex p-1 bg-gray-100/80 dark:bg-[#1a1a1a] rounded-xl shadow-inner border border-gray-200 dark:border-white/5 w-full">
+                        {tabs.map((tab) => {
+                            const isActive = activeTabId === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTabId(tab.id)}
+                                    className={`
+                                        flex-1 relative flex items-center justify-center py-2 rounded-lg text-sm font-medium transition-all duration-300 outline-none
+                                        ${isActive 
+                                            ? 'text-gray-900 dark:text-white shadow-sm bg-white dark:bg-[#2d2d2d] border border-gray-200 dark:border-white/10' 
+                                            : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-white/5 border border-transparent'
+                                        }
+                                    `}
+                                >
+                                    {tab.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Intelligent Helper Alert */}
+                <div className="flex items-start space-x-3 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
+                    <div className="p-2 bg-white dark:bg-[#2d2d2d] rounded-lg border border-gray-200 dark:border-white/5 shadow-sm mt-0.5">
+                        <Link className="w-4 h-4 text-blue-500" />
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 flex flex-col">
+                        <span className="font-medium text-gray-900 dark:text-gray-200 mb-1">Direct access link</span>
+                        <span className="font-mono text-xs break-all bg-gray-200 dark:bg-[#2d2d2d] px-2 py-1 rounded inline-block self-start">
+                            /{activeTab.id}/filename
+                        </span>
+                    </div>
+                </div>
+
+                {/* Upload Area */}
+                <div>
+                    <FileUpload onFileUpload={handleFileUpload} uploading={uploading} />
+                </div>
             </div>
 
-            {/* Elegant Tab Switcher */}
-            <div className="flex justify-center">
-                <div className="inline-flex p-1 bg-gray-100/80 dark:bg-[#1a1a1a] rounded-xl shadow-inner border border-gray-200 dark:border-white/5">
-                    {tabs.map((tab) => {
-                        const isActive = activeTabId === tab.id;
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTabId(tab.id)}
-                                className={`
-                                    relative flex items-center px-6 py-2 rounded-lg text-sm font-medium transition-all duration-300 outline-none
-                                    ${isActive 
-                                        ? 'text-gray-900 dark:text-white shadow-sm bg-white dark:bg-[#2d2d2d] border border-gray-200 dark:border-white/10' 
-                                        : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-white/5 border border-transparent'
-                                    }
-                                `}
-                            >
-                                {tab.label}
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* Intelligent Helper Alert */}
-            <div className="flex items-center justify-center space-x-3 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
-                <div className="p-2 bg-white dark:bg-[#2d2d2d] rounded-lg border border-gray-200 dark:border-white/5 shadow-sm">
-                    <Link className="w-4 h-4 text-blue-500" />
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Direct access link: <span className="inline-flex items-center font-mono font-medium text-gray-900 dark:text-gray-200 bg-gray-200 dark:bg-[#2d2d2d] px-2 py-0.5 rounded ml-1">/{activeTab.id}/filename</span>
-                </div>
-            </div>
-
-            {/* Upload Area */}
-            <div className="pt-2">
-                <FileUpload onFileUpload={handleFileUpload} uploading={uploading} />
-            </div>
-
-            {/* File List Section */}
-            {loading ? (
-                <div className="flex flex-col items-center justify-center py-12 opacity-50">
-                    <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 border-t-gray-900 dark:border-t-white rounded-full animate-spin mb-3"></div>
-                    <p className="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-widest">Syncing</p>
-                </div>
-            ) : (
-                <div className="w-full mx-auto space-y-6">
+            {/* Right Column: Scrollable File Manager */}
+            <div className="flex-1 w-full flex flex-col h-full bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm overflow-hidden">
+                
+                {/* Fixed Search/Actions Header */}
+                <div className="p-6 border-b border-gray-100 dark:border-white/5 flex-shrink-0 flex items-center gap-3 bg-white/50 dark:bg-[#111111]/50 backdrop-blur-md z-10">
+                    <div className="relative flex-1 group">
+                        <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 transition-colors group-focus-within:text-blue-500" />
+                        <input
+                            type="text"
+                            placeholder="Filter files in this group..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-all placeholder:text-gray-400"
+                        />
+                    </div>
                     {files.length > 0 && (
-                        <div className="flex items-center gap-3">
-                            <div className="relative flex-1 group">
-                                <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 transition-colors group-focus-within:text-blue-500" />
-                                <input
-                                    type="text"
-                                    placeholder="Filter files..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-all placeholder:text-gray-400"
-                                />
-                            </div>
-                            <button
-                                onClick={handleDeleteAll}
-                                className="px-4 py-2.5 bg-transparent border border-red-200 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-sm font-medium flex items-center gap-2 transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-red-500/30"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                                Clear List
-                            </button>
-                        </div>
+                        <button
+                            onClick={handleDeleteAll}
+                            className="px-4 py-2 bg-transparent border border-red-200 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-sm font-medium flex items-center gap-2 transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-red-500/30"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            Clear List
+                        </button>
                     )}
-
-                    <FileList
-                        files={filteredFiles}
-                        onPreview={onPreview}
-                        onDownload={onDownload}
-                        onDelete={handleFileDelete}
-                    />
                 </div>
-            )}
+
+                {/* Scrollable List Body */}
+                <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center h-full opacity-50">
+                            <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 border-t-gray-900 dark:border-t-white rounded-full animate-spin mb-3"></div>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-widest">Syncing</p>
+                        </div>
+                    ) : (
+                        <FileList
+                            files={filteredFiles}
+                            onPreview={onPreview}
+                            onDownload={onDownload}
+                            onDelete={handleFileDelete}
+                        />
+                    )}
+                </div>
+
+            </div>
         </div>
     );
 };
