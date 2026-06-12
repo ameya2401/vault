@@ -43,12 +43,14 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, uploading 
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       
+      // Clear the input value immediately so the exact same file can be selected again later
+      e.target.value = '';
+      
       // File size limit: 10MB (adjust as needed)
       const maxSize = 10 * 1024 * 1024; // 10MB in bytes
       
       if (file.size > maxSize) {
         alert('File size must be less than 10MB. Please choose a smaller file.');
-        e.target.value = ''; // Clear the input
         return;
       }
       
