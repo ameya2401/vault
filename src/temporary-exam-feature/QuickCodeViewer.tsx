@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Copy, Check, AlertCircle, Loader2, ZoomIn, ZoomOut } from 'lucide-react';
+import { Copy, Check, AlertCircle, Loader2, ZoomIn, ZoomOut, Users } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 
 export const QuickCodeViewer: React.FC = () => {
@@ -11,84 +11,12 @@ export const QuickCodeViewer: React.FC = () => {
     const [filename, setFilename] = useState('');
     const [language, setLanguage] = useState('plaintext');
     const [fontSize, setFontSize] = useState(14);
+    
+    // For handling conflicts when the same filename exists in multiple groups
+    const [conflictFiles, setConflictFiles] = useState<any[]>([]);
 
     useEffect(() => {
-        const fetchFile = async () => {
-            try {
-                // Get filename from URL path, removing the leading slash
-                const path = window.location.pathname.substring(1);
-                // Handle potential URL decoding (e.g. %20 for spaces)
-                const decodedPath = decodeURIComponent(path);
-                setFilename(decodedPath);
-                setLanguage(getLanguageFromFilename(decodedPath));
-
-                if (!decodedPath) {
-                    setError('No file specified');
-                    setLoading(false);
-                    return;
-                }
-
-                // 1. First find the file in the database to get its path
-                // We search by name (flexible search primarily for exact match)
-                const { data: files, error: dbError } = await supabase
-                    .from('files')
-                    .select('*')
-                    .ilike('name', decodedPath);
-
-                if (dbError) throw dbError;
-
-                // FILTER: Only allow files in the exam-files/ folder
-                let targetFile = files?.find((f: any) => f.file_path.startsWith('exam-files/'));
-
-                if (!targetFile) {
-                    // 2. If exact match not found, try finding a file with this name + any extension
-                    // We only do this if the user didn't provide an extension (no dot in the name)
-                    // or if they did but we want to be flexible.
-
-                    // Search for files that start with "decodedPath."
-                    // e.g. decodedPath = "binarysearch", search for "binarysearch.%"
-                    const { data: extFiles, error: extDbError } = await supabase
-                        .from('files')
-                        .select('*')
-                        .ilike('name', `${decodedPath}.%`); // % matches any characters
-
-                    if (!extDbError && extFiles && extFiles.length > 0) {
-                        // Filter for exam-files/
-                        const examFiles = extFiles.filter((f: any) => f.file_path.startsWith('exam-files/'));
-
-                        if (examFiles.length > 0) {
-                            // If we find multiple (e.g. main.c, main.h), we pick the first one.
-                            // Ideally we might show a list, but for now convenience is key.
-                            targetFile = examFiles[0];
-                            // Update filename/language to match the actual found file
-                            const actualName = targetFile.name; // Assuming 'name' column holds the filename
-                            // If name column is full path, we might need to parse. 
-                            // Based on earlier context 'name' seems to be just filename. 
-                            // But let's verify with the file path which includes 'exam-files/'
-                            // Actually earlier code used 'files' table 'name' col.
-
-                            // Let's update the UI state to show the real filename
-                            setFilename(targetFile.name);
-                            setLanguage(getLanguageFromFilename(targetFile.name));
-                        }
-                    }
-                }
-
-                if (!targetFile) {
-                    throw new Error('File not found');
-                }
-
-                await downloadFile(targetFile.file_path);
-
-            } catch (err: any) {
-                console.error('Error fetching file:', err);
-                setError(err.message || 'Failed to load file');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchFile();
+        fetchFileFromUrl();
     }, []);
 
     const getLanguageFromFilename = (filename: string): string => {
@@ -123,6 +51,126 @@ export const QuickCodeViewer: React.FC = () => {
         }
     };
 
+    const getGroupInfo = (filePath: string) => {
+        if (filePath.startsWith('exam-files/group-b/')) return { id: 'b', name: 'Group B' };
+        if (filePath.startsWith('exam-files/group-c/')) return { id: 'c', name: 'Group C' };
+        if (filePath.startsWith('exam-files/group-d/')) return { id: 'd', name: 'Group D' };
+        if (filePath.startsWith('exam-files/')) return { id: 'a', name: 'Group A' };
+        return { id: 'unknown', name: 'Unknown Group' };
+    };
+
+    const fetchFileFromUrl = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            setConflictFiles([]);
+
+            // Get filename from URL path, removing the leading slash
+            const path = window.location.pathname.substring(1);
+            const decodedPath = decodeURIComponent(path);
+            
+            if (!decodedPath) {
+                setError('No file specified');
+                setLoading(false);
+                return;
+            }
+
+            // Parse optional group from URL (e.g. "b/file.java")
+            let requestedGroup: string | null = null;
+            let searchFilename = decodedPath;
+
+            const parts = decodedPath.split('/');
+            if (parts.length >= 2) {
+                const possibleGroup = parts[0].toLowerCase();
+                if (['a', 'b', 'c', 'd'].includes(possibleGroup)) {
+                    requestedGroup = possibleGroup;
+                    searchFilename = parts.slice(1).join('/');
+                }
+            }
+
+            setFilename(searchFilename);
+            setLanguage(getLanguageFromFilename(searchFilename));
+
+            // Search by name in database
+            const { data: files, error: dbError } = await supabase
+                .from('files')
+                .select('*')
+                .ilike('name', searchFilename);
+
+            if (dbError) throw dbError;
+
+            // Filter for exam files
+            let examFiles = files?.filter((f: any) => f.file_path.startsWith('exam-files/')) || [];
+
+            // If an exact filename match isn't found, try the flexible extension search
+            if (examFiles.length === 0) {
+                const { data: extFiles, error: extDbError } = await supabase
+                    .from('files')
+                    .select('*')
+                    .ilike('name', `${searchFilename}.%`);
+
+                if (!extDbError && extFiles) {
+                    examFiles = extFiles.filter((f: any) => f.file_path.startsWith('exam-files/'));
+                }
+            }
+
+            if (examFiles.length === 0) {
+                throw new Error('File not found in any exam group.');
+            }
+
+            // If a group was specified in the URL, filter specifically for that group
+            if (requestedGroup) {
+                examFiles = examFiles.filter((f: any) => getGroupInfo(f.file_path).id === requestedGroup);
+                if (examFiles.length === 0) {
+                    throw new Error(`File not found in ${requestedGroup.toUpperCase()}.`);
+                }
+            }
+
+            // Exact match resolution
+            if (examFiles.length > 1) {
+                // We have a conflict! Show disambiguation UI
+                setConflictFiles(examFiles);
+                setLoading(false);
+                return;
+            }
+
+            // Exactly one file found
+            const targetFile = examFiles[0];
+            setFilename(targetFile.name);
+            setLanguage(getLanguageFromFilename(targetFile.name));
+            
+            // Update URL to reflect exact path if it was resolved from ambiguous or no-extension
+            const groupInfo = getGroupInfo(targetFile.file_path);
+            const newUrl = `/${groupInfo.id}/${targetFile.name}`;
+            window.history.replaceState(null, '', newUrl);
+
+            await downloadFile(targetFile.file_path);
+
+        } catch (err: any) {
+            console.error('Error fetching file:', err);
+            setError(err.message || 'Failed to load file');
+            setLoading(false);
+        }
+    };
+
+    const loadSpecificFile = async (targetFile: any) => {
+        try {
+            setLoading(true);
+            setConflictFiles([]);
+            setFilename(targetFile.name);
+            setLanguage(getLanguageFromFilename(targetFile.name));
+            
+            const groupInfo = getGroupInfo(targetFile.file_path);
+            const newUrl = `/${groupInfo.id}/${targetFile.name}`;
+            window.history.replaceState(null, '', newUrl);
+
+            await downloadFile(targetFile.file_path);
+        } catch (err: any) {
+            setError(err.message || 'Failed to load file');
+            setLoading(false);
+        }
+    };
+
     const downloadFile = async (filePath: string) => {
         try {
             const { data, error: downloadError } = await supabase.storage
@@ -150,7 +198,6 @@ export const QuickCodeViewer: React.FC = () => {
         }
     };
 
-
     if (loading) {
         return (
             <div className="min-h-screen bg-[#1e1e1e] flex items-center justify-center text-white">
@@ -170,6 +217,54 @@ export const QuickCodeViewer: React.FC = () => {
                     <a href="/" className="block mt-6 text-blue-400 hover:text-blue-300 underline">
                         Go to Home
                     </a>
+                </div>
+            </div>
+        );
+    }
+
+    if (conflictFiles.length > 0) {
+        return (
+            <div className="min-h-screen bg-[#1e1e1e] flex items-center justify-center text-white font-mono p-4">
+                <div className="bg-[#252526] border border-[#3c3c3c] p-8 rounded-xl max-w-lg w-full shadow-2xl">
+                    <div className="flex items-center justify-center mb-6 text-blue-400 bg-blue-400/10 w-16 h-16 rounded-full mx-auto">
+                        <Users className="w-8 h-8" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-3 text-center text-gray-100">Multiple Files Found</h2>
+                    <p className="text-gray-400 text-center mb-8 text-sm">
+                        The file <span className="text-blue-400 font-semibold">{filename}</span> exists in multiple groups. 
+                        Please select which group you belong to.
+                    </p>
+                    
+                    <div className="space-y-3">
+                        {conflictFiles.map((file, index) => {
+                            const groupInfo = getGroupInfo(file.file_path);
+                            return (
+                                <button
+                                    key={index}
+                                    onClick={() => loadSpecificFile(file)}
+                                    className="w-full flex items-center justify-between p-4 rounded-lg border border-[#3c3c3c] bg-[#1e1e1e] hover:bg-[#2d2d2d] hover:border-blue-500/50 transition-all text-left group"
+                                >
+                                    <div className="flex flex-col">
+                                        <span className="text-lg font-bold text-gray-200 group-hover:text-blue-400 transition-colors">
+                                            {groupInfo.name}
+                                        </span>
+                                        <span className="text-xs text-gray-500 mt-1 truncate max-w-[200px] sm:max-w-[300px]">
+                                            {file.file_path}
+                                        </span>
+                                    </div>
+                                    <div className="text-gray-600 group-hover:text-blue-400">
+                                        →
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    
+                    <div className="mt-8 pt-6 border-t border-[#3c3c3c] text-center">
+                        <a href="/" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+                            Return to Home
+                        </a>
+                    </div>
                 </div>
             </div>
         );
@@ -262,3 +357,4 @@ export const QuickCodeViewer: React.FC = () => {
         </div>
     );
 };
+

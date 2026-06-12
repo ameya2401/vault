@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from './hooks/useTheme';
 import { ThemeToggle } from './components/ThemeToggle';
-import { FileUpload } from './components/FileUpload';
-import { FileList } from './components/FileList';
 import { FilePreview } from './components/FilePreview';
 import { UploadedFile } from './types/file';
 import { storageService } from './lib/storage';
-import { Lock, HardDrive, Code2 } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import AppHeader from './components/AppHeader';
-import CodeEditor from './components/codeeditor/CodeEditor';
 import { ExamModeView } from './temporary-exam-feature/ExamModeView';
 
 function App() {
@@ -16,12 +13,8 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Password protection enabled
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [activeSection, setActiveSection] = useState<'files' | 'code' | 'exam'>('files');
-  const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [uploading, setUploading] = useState(false);
   const [previewFile, setPreviewFile] = useState<UploadedFile | null>(null);
   const [fileContent, setFileContent] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const CORRECT_PASSWORD = import.meta.env.VITE_APP_PASSWORD || 'Ab@supabase';
 
@@ -63,25 +56,6 @@ function App() {
     setIsAuthenticated(false);
     sessionStorage.removeItem('fileupload_auth');
     setPassword('');
-    setFiles([]);
-    setActiveSection('files');
-  };
-
-  const handleFileUpload = async (file: File) => {
-    setUploading(true);
-    try {
-      // Upload to Supabase
-      const uploadedFile = await storageService.uploadFile(file);
-
-      // Add to files list
-      setFiles(prev => [uploadedFile, ...prev]);
-
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      alert('Failed to upload file. Please try again.');
-    } finally {
-      setUploading(false);
-    }
   };
 
   const handlePreview = async (file: UploadedFile) => {
@@ -156,10 +130,6 @@ function App() {
       // Delete from Supabase
       await storageService.deleteFile(file);
 
-      // Remove from files array
-      const updatedFiles = files.filter(f => f.id !== file.id);
-      setFiles(updatedFiles);
-
       // Close preview if the deleted file is currently being previewed
       if (previewFile && previewFile.id === file.id) {
         setPreviewFile(null);
@@ -171,37 +141,6 @@ function App() {
       alert('Failed to delete file. Please try again.');
     }
   };
-
-  // Load files from Supabase on authentication
-  useEffect(() => {
-    if (isAuthenticated) {
-      const loadFiles = async () => {
-        try {
-          setLoading(true);
-
-          // Test connection first
-          console.log('Testing Supabase connection...');
-          const connectionOk = await storageService.testConnection();
-          if (!connectionOk) {
-            console.error('Supabase connection failed!');
-            alert('Connection to database failed. Please check your Supabase configuration.');
-            return;
-          }
-
-          // Load main files (exclude exam folder)
-          const allFiles = await storageService.getFiles();
-          const mainFiles = allFiles.filter(f => !f.file_path.startsWith('exam-files/'));
-          setFiles(mainFiles);
-        } catch (error) {
-          console.error('Error loading files:', error);
-          alert('Failed to load files. Please check your Supabase setup.');
-        } finally {
-          setLoading(false);
-        }
-      };
-      loadFiles();
-    }
-  }, [isAuthenticated]);
 
   // Login Screen
   if (!isAuthenticated) {
@@ -253,57 +192,20 @@ function App() {
   return (
     <div className="min-h-screen bg-white dark:bg-black flex flex-col">
       <AppHeader
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
         onLogout={handleLogout}
         isDarkMode={isDark}
         onToggleTheme={toggleTheme}
       />
 
-      <div className="container mx-auto px-4 py-6 flex-1" style={{ height: 'calc(100vh - 120px)' }}>
-        {activeSection === 'files' ? (
-          <>
-            <div className="text-center mb-8">
-              <h2 className="text-xl font-bold text-black dark:text-white mb-2">
-                File Storage
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
-                Upload and manage your files
-              </p>
-            </div>
-
-            <FileUpload onFileUpload={handleFileUpload} uploading={uploading} />
-
-            {loading ? (
-              <div className="text-center py-6">
-                <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full animate-spin mx-auto"></div>
-                <p className="text-gray-600 dark:text-gray-400 mt-2 text-xs">Loading...</p>
-              </div>
-            ) : (
-              <FileList
-                files={files}
-                onPreview={handlePreview}
-                onDownload={handleDownload}
-                onDelete={handleDelete}
-              />
-            )}
-          </>
-        ) : activeSection === 'code' ? (
-          <div className="h-full w-full">
-            <CodeEditor />
-          </div>
-        ) : (
-          <div className="h-full w-full">
-            <ExamModeView
-              onPreview={handlePreview}
-              onDownload={handleDownload}
-              onDelete={handleDelete}
-            />
-          </div>
-        )}
+      <div className="max-w-5xl mx-auto w-full px-4 py-8 flex-1">
+        <div className="w-full">
+          <ExamModeView
+            onPreview={handlePreview}
+            onDownload={handleDownload}
+            onDelete={handleDelete}
+          />
+        </div>
       </div>
-
-
 
       <FilePreview
         file={previewFile}

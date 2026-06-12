@@ -22,11 +22,19 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
     const [uploading, setUploading] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const EXAM_FOLDER = 'exam-files';
+    const EXAM_ROOT = 'exam-files';
+    const tabs = [
+        { id: 'group-a', label: 'Group A', folder: EXAM_ROOT },
+        { id: 'group-b', label: 'Group B', folder: `${EXAM_ROOT}/group-b` },
+        { id: 'group-c', label: 'Group C', folder: `${EXAM_ROOT}/group-c` },
+        { id: 'group-d', label: 'Group D', folder: `${EXAM_ROOT}/group-d` }
+    ];
+    const [activeTabId, setActiveTabId] = useState(tabs[0].id);
+    const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0];
 
     useEffect(() => {
-        loadFiles();
-    }, []);
+        loadFiles(activeTab.folder);
+    }, [activeTab.folder]);
 
     useEffect(() => {
         const filtered = files.filter(file =>
@@ -35,10 +43,10 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
         setFilteredFiles(filtered);
     }, [files, searchQuery]);
 
-    const loadFiles = async () => {
+    const loadFiles = async (folder: string) => {
         try {
             setLoading(true);
-            const loadedFiles = await storageService.getFiles(EXAM_FOLDER);
+            const loadedFiles = await storageService.getFiles(folder);
             setFiles(loadedFiles);
         } catch (error) {
             console.error('Error loading exam files:', error);
@@ -52,7 +60,7 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
         setUploading(true);
         try {
             // Upload to exam folder
-            const uploadedFile = await storageService.uploadFile(file, EXAM_FOLDER);
+            const uploadedFile = await storageService.uploadFile(file, activeTab.folder);
 
             // Add to files list
             setFiles(prev => [uploadedFile, ...prev]);
@@ -128,7 +136,7 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
             console.error('Error deleting all files:', error);
             alert('Failed to delete some files. Please check console for details.');
             // Reload to show current state
-            loadFiles();
+            loadFiles(activeTab.folder);
         } finally {
             setLoading(false);
         }
@@ -144,8 +152,23 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
                 <p className="text-gray-600 dark:text-gray-400 text-sm max-w-md mx-auto">
                     Files uploaded here are accessible via direct URL for practical exams.
                     <br />
-                    <span className="text-xs opacity-75">folder: {EXAM_FOLDER}</span>
+                    <span className="text-xs opacity-75">folder: {activeTab.folder}</span>
                 </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-2">
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTabId(tab.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${activeTabId === tab.id
+                                ? 'bg-red-500 text-white border-red-500'
+                                : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800'
+                            }`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
             <FileUpload onFileUpload={handleFileUpload} uploading={uploading} />
