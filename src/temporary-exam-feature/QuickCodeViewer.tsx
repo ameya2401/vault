@@ -135,7 +135,7 @@ export const QuickCodeViewer: React.FC = () => {
                 }
             }
 
-            // Exact match resolution
+            // Exact match resolution (only triggers if NO group was requested AND multiple files exist)
             if (examFiles.length > 1) {
                 // We have a conflict! Show disambiguation UI
                 setConflictFiles(examFiles);
