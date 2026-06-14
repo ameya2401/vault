@@ -127,15 +127,34 @@ export const QuickCodeViewer: React.FC = () => {
                 throw new Error('File not found in any exam group.');
             }
 
+            // Sort files by uploaded_at descending (newest first)
+            examFiles.sort((a: any, b: any) => {
+                const dateA = a.uploaded_at ? new Date(a.uploaded_at).getTime() : 0;
+                const dateB = b.uploaded_at ? new Date(b.uploaded_at).getTime() : 0;
+                return dateB - dateA;
+            });
+
             // If a group was specified in the URL, filter specifically for that group
             if (requestedGroup) {
                 examFiles = examFiles.filter((f: any) => getGroupInfo(f.file_path).id === requestedGroup);
                 if (examFiles.length === 0) {
                     throw new Error(`File not found in ${requestedGroup.toUpperCase()}.`);
                 }
+                // Since they are in the same group, just pick the newest one and proceed
+                examFiles = [examFiles[0]];
+            } else {
+                // No group specified. We might have files in multiple groups.
+                // Keep only the newest file PER GROUP to avoid duplicate group buttons in the UI.
+                const uniqueGroups = new Set();
+                examFiles = examFiles.filter((f: any) => {
+                    const groupId = getGroupInfo(f.file_path).id;
+                    if (uniqueGroups.has(groupId)) return false;
+                    uniqueGroups.add(groupId);
+                    return true;
+                });
             }
 
-            // Exact match resolution (only triggers if NO group was requested AND multiple files exist)
+            // Exact match resolution (only triggers if NO group was requested AND files exist in multiple different groups)
             if (examFiles.length > 1) {
                 // We have a conflict! Show disambiguation UI
                 setConflictFiles(examFiles);
