@@ -11,6 +11,7 @@ export const QuickCodeViewer: React.FC = () => {
     const [filename, setFilename] = useState('');
     const [language, setLanguage] = useState('plaintext');
     const [fontSize, setFontSize] = useState(14);
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     
     // For handling conflicts when the same filename exists in multiple groups
     const [conflictFiles, setConflictFiles] = useState<any[]>([]);
@@ -172,7 +173,7 @@ export const QuickCodeViewer: React.FC = () => {
             const newUrl = `/${groupInfo.id}/${targetFile.name}`;
             window.history.replaceState(null, '', newUrl);
 
-            await downloadFile(targetFile.file_path);
+            await downloadFile(targetFile.file_path, targetFile.name);
 
         } catch (err: any) {
             console.error('Error fetching file:', err);
@@ -192,14 +193,14 @@ export const QuickCodeViewer: React.FC = () => {
             const newUrl = `/${groupInfo.id}/${targetFile.name}`;
             window.history.replaceState(null, '', newUrl);
 
-            await downloadFile(targetFile.file_path);
+            await downloadFile(targetFile.file_path, targetFile.name);
         } catch (err: any) {
             setError(err.message || 'Failed to load file');
             setLoading(false);
         }
     };
 
-    const downloadFile = async (filePath: string) => {
+    const downloadFile = async (filePath: string, fileName: string) => {
         try {
             const { data, error: downloadError } = await supabase.storage
                 .from('files')
@@ -207,8 +208,15 @@ export const QuickCodeViewer: React.FC = () => {
 
             if (downloadError) throw downloadError;
 
-            const text = await data.text();
-            setContent(text);
+            if (fileName.toLowerCase().endsWith('.pdf')) {
+                const blob = new Blob([data], { type: 'application/pdf' });
+                const objectUrl = URL.createObjectURL(blob);
+                setPdfUrl(objectUrl);
+            } else {
+                const text = await data.text();
+                setContent(text);
+                setPdfUrl(null);
+            }
         } catch (err) {
             throw err;
         } finally {
@@ -310,77 +318,89 @@ export const QuickCodeViewer: React.FC = () => {
 
                 {/* Center: Zoom Controls */}
                 <div className="flex items-center justify-center">
-                    <div className="flex items-center bg-[#3c3c3c] rounded-md overflow-hidden border border-[#4a4a4a] shadow-sm transform scale-110">
-                        <button
-                            onClick={() => setFontSize(prev => Math.max(10, prev - 1))}
-                            className="p-3 hover:bg-[#4a4a4a] text-gray-300 transition-colors active:bg-[#5a5a5a]"
-                            title="Decrease font size"
-                        >
-                            <ZoomOut className="w-6 h-6" />
-                        </button>
-                        <span className="px-4 text-base font-medium text-gray-300 min-w-[3ch] text-center border-x border-[#4a4a4a] py-3 bg-[#333]">
-                            {fontSize}
-                        </span>
-                        <button
-                            onClick={() => setFontSize(prev => Math.min(32, prev + 1))}
-                            className="p-3 hover:bg-[#4a4a4a] text-gray-300 transition-colors active:bg-[#5a5a5a]"
-                            title="Increase font size"
-                        >
-                            <ZoomIn className="w-6 h-6" />
-                        </button>
-                    </div>
+                    {!pdfUrl && (
+                        <div className="flex items-center bg-[#3c3c3c] rounded-md overflow-hidden border border-[#4a4a4a] shadow-sm transform scale-110">
+                            <button
+                                onClick={() => setFontSize(prev => Math.max(10, prev - 1))}
+                                className="p-3 hover:bg-[#4a4a4a] text-gray-300 transition-colors active:bg-[#5a5a5a]"
+                                title="Decrease font size"
+                            >
+                                <ZoomOut className="w-6 h-6" />
+                            </button>
+                            <span className="px-4 text-base font-medium text-gray-300 min-w-[3ch] text-center border-x border-[#4a4a4a] py-3 bg-[#333]">
+                                {fontSize}
+                            </span>
+                            <button
+                                onClick={() => setFontSize(prev => Math.min(32, prev + 1))}
+                                className="p-3 hover:bg-[#4a4a4a] text-gray-300 transition-colors active:bg-[#5a5a5a]"
+                                title="Increase font size"
+                            >
+                                <ZoomIn className="w-6 h-6" />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Right: Copy Button */}
                 <div className="flex items-center justify-end">
-                    <button
-                        onClick={handleCopy}
-                        className={`
-                            flex items-center space-x-2 px-6 py-3 rounded-md text-base font-medium transition-all duration-200 shadow-lg
-                            ${copied
-                                ? 'bg-green-600/20 text-green-400 border border-green-500/30'
-                                : 'bg-[#007acc] hover:bg-[#0063a5] text-white hover:shadow-blue-500/20 border border-transparent'}
-                        `}
-                    >
-                        {copied ? (
-                            <>
-                                <Check className="w-5 h-5" />
-                                <span>Copied</span>
-                            </>
-                        ) : (
-                            <>
-                                <Copy className="w-5 h-5" />
-                                <span>Copy Code</span>
-                            </>
-                        )}
-                    </button>
+                    {!pdfUrl && (
+                        <button
+                            onClick={handleCopy}
+                            className={`
+                                flex items-center space-x-2 px-6 py-3 rounded-md text-base font-medium transition-all duration-200 shadow-lg
+                                ${copied
+                                    ? 'bg-green-600/20 text-green-400 border border-green-500/30'
+                                    : 'bg-[#007acc] hover:bg-[#0063a5] text-white hover:shadow-blue-500/20 border border-transparent'}
+                            `}
+                        >
+                            {copied ? (
+                                <>
+                                    <Check className="w-5 h-5" />
+                                    <span>Copied</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Copy className="w-5 h-5" />
+                                    <span>Copy Code</span>
+                                </>
+                            )}
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {/* Monaco Editor Container */}
+            {/* Main Content Container */}
             <div className="flex-1 overflow-hidden">
-                <Editor
-                    height="100%"
-                    width="100%"
-                    language={language}
-                    value={content}
-                    theme="vs-dark"
-                    options={{
-                        readOnly: true,
-                        minimap: { enabled: false },
-                        scrollBeyondLastLine: false,
-                        fontSize: fontSize,
-                        fontFamily: "'Cascadia Code', 'Fira Code', 'Menlo', 'Monaco', 'Courier New', monospace",
-                        fontLigatures: true,
-                        padding: { top: 24, bottom: 24 },
-                        lineNumbers: 'on',
-                        renderLineHighlight: 'all',
-                        contextmenu: false,
-                        matchBrackets: 'always',
-                        automaticLayout: true,
-                        mouseWheelZoom: false,
-                    }}
-                />
+                {pdfUrl ? (
+                    <iframe
+                        src={pdfUrl}
+                        className="w-full h-full border-none bg-white"
+                        title="PDF Document Viewer"
+                    />
+                ) : (
+                    <Editor
+                        height="100%"
+                        width="100%"
+                        language={language}
+                        value={content}
+                        theme="vs-dark"
+                        options={{
+                            readOnly: true,
+                            minimap: { enabled: false },
+                            scrollBeyondLastLine: false,
+                            fontSize: fontSize,
+                            fontFamily: "'Cascadia Code', 'Fira Code', 'Menlo', 'Monaco', 'Courier New', monospace",
+                            fontLigatures: true,
+                            padding: { top: 24, bottom: 24 },
+                            lineNumbers: 'on',
+                            renderLineHighlight: 'all',
+                            contextmenu: false,
+                            matchBrackets: 'always',
+                            automaticLayout: true,
+                            mouseWheelZoom: false,
+                        }}
+                    />
+                )}
             </div>
         </div>
     );

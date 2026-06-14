@@ -23,6 +23,7 @@ Switching tabs changes:
 ## Completed Improvements
 - URL routing to include tab/group info for precise access (e.g., `/b/file.java`).
 - Disambiguation UI when multiple groups have files with the same name (prompts user to select their group).
+- Support for inline PDF viewing (dynamically detects `.pdf` files and renders them via object URLs in an `iframe` instead of the Monaco Editor, while hiding text-specific UI like Zoom and Copy).
 
 ## Pending / Future Improvements
 - Optional admin UI to rename tabs and manage groups.
