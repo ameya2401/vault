@@ -193,9 +193,8 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
                         onDelete={handleFileDelete}
                     />
                 </div>
-
-            </div>
-        </div >
+            )}
+        </div>
     );
 };
 
